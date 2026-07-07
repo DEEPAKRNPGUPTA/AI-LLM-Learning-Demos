@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>09 — Sequence Learning</title>
+  <style>
+    :root {
+      --bg:#f5f7fb; --ink:#172033; --muted:#667085; --brand:#0b63ce; --brand2:#153e90;
+      --soft:#e8f1ff; --soft2:#fff7e6; --line:#d9e2ef; --good:#16803c; --bad:#b42318;
+      --shadow:0 18px 45px rgba(18, 38, 63, .10); --radius:20px;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;font-family:"Segoe UI",system-ui,-apple-system,BlinkMacSystemFont,sans-serif;
+      background:radial-gradient(circle at top left,#dcecff 0,transparent 28%),radial-gradient(circle at top right,#fff0d0 0,transparent 24%),var(--bg);
+      color:var(--ink);line-height:1.72;
+    }
+    .shell{max-width:1240px;margin:auto;padding:24px}
+    .hero{display:grid;grid-template-columns:1.12fr .88fr;gap:24px;align-items:stretch;margin-bottom:22px}
+    .hero-card,.side-card,.section,.demo-card{background:rgba(255,255,255,.95);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:var(--radius)}
+    .hero-card{padding:38px}
+    .eyebrow{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;color:var(--brand2);background:var(--soft);font-weight:800;font-size:13px;margin-bottom:16px}
+    h1{font-size:clamp(36px,5vw,66px);line-height:1.03;margin:0 0 16px;letter-spacing:-1.6px}
+    .lead{font-size:20px;color:#344054;margin:0 0 22px;max-width:780px}
+    .btn{border:0;border-radius:14px;padding:12px 16px;font-weight:850;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;background:var(--brand);color:white;box-shadow:0 10px 22px rgba(11,99,206,.22)}
+    .btn.secondary{background:white;color:var(--brand2);border:1px solid var(--line);box-shadow:none}
+    .hero-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:20px}
+    .side-card{padding:24px}
+    .journey{display:grid;gap:10px;margin-top:16px}
+    .journey div{padding:12px 14px;background:#f8fbff;border:1px solid var(--line);border-radius:14px;font-weight:750;color:#1d3557}
+    .journey .active{background:var(--brand);color:white;border-color:var(--brand)}
+    .toc-wrap{position:sticky;top:0;z-index:10;background:rgba(245,247,251,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin:0 -24px 24px;padding:12px 24px}
+    .toc-head{max-width:1240px;margin:auto;display:flex;justify-content:space-between;gap:12px;align-items:center}
+    .toc-toggle{border:1px solid var(--line);background:white;padding:10px 14px;border-radius:12px;cursor:pointer;font-weight:800}
+    .toc{max-width:1240px;margin:12px auto 0;display:none;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:8px}
+    .toc.open{display:grid}
+    .toc a{text-decoration:none;background:white;border:1px solid var(--line);border-radius:12px;padding:9px 11px;font-size:14px;color:#344054}
+    .toc a:hover{border-color:var(--brand);color:var(--brand)}
+    .intro-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px}
+    .mini{background:white;border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 10px 22px rgba(18,38,63,.06)}
+    .mini h3{margin:0 0 8px;font-size:18px}
+    .mini p{margin:0;color:var(--muted)}
+    .badge{display:inline-block;padding:4px 9px;background:var(--soft2);color:#8a4b00;border-radius:999px;font-size:12px;font-weight:850;margin-bottom:10px}
+    .section{padding:30px;margin:20px 0}
+    .section h2{margin:0 0 10px;font-size:clamp(25px,3vw,36px);letter-spacing:-.45px;color:#102a56}
+    .section .num{color:var(--brand);font-weight:950;margin-right:8px}
+    .section p{margin:12px 0;color:#344054;font-size:17px}
+    .deep-list{display:grid;gap:10px;margin:14px 0}
+    .deep-item{background:#fbfdff;border:1px solid var(--line);border-radius:14px;padding:13px 14px;color:#344054}
+    .teacher-note{margin:16px 0;padding:16px;border-left:5px solid var(--brand);background:#f4f8ff;border-radius:14px;color:#23395d;font-weight:700}
+    .example{background:#101828;color:#f2f4f7;border-radius:16px;padding:16px;overflow:auto;font-family:Consolas,"Courier New",monospace;margin:16px 0;white-space:pre-wrap}
+    .demo-card{padding:30px;margin:24px 0}
+    .demo-card h2{margin:0 0 8px;color:#102a56}
+    .controls{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0;align-items:center}
+    input,select{padding:12px 14px;border:1px solid var(--line);border-radius:12px;font:inherit;background:white;min-height:44px}
+    input[type=text]{flex:1;min-width:280px}
+    .demo-output{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;margin-top:16px}
+    .token-card{border:1px solid var(--line);background:#fbfdff;border-radius:16px;padding:14px}
+    .token-card h4{margin:0 0 8px}
+    .small{font-size:13px;color:var(--muted)}
+    .bar{height:12px;background:#edf2f7;border-radius:999px;overflow:hidden;margin:8px 0}
+    .bar span{display:block;height:100%;background:linear-gradient(90deg,#0b63ce,#52a7ff);border-radius:999px;width:0}
+    .sentiment{margin-top:16px;padding:16px;border-radius:16px;font-weight:900;font-size:20px;background:#f0fff4;color:var(--good);border:1px solid #b7ebc6}
+    .sentiment.neg{background:#fff5f5;color:var(--bad);border-color:#fecaca}
+    .heat-row{display:grid;grid-template-columns:120px 1fr 70px;gap:12px;align-items:center;margin:10px 0}
+    .heat-label{font-weight:850}
+    .footer{text-align:center;color:var(--muted);padding:36px 10px}
+    @media(max-width:900px){
+      .hero,.intro-grid{grid-template-columns:1fr}
+      .shell{padding:16px}
+      .toc-wrap{margin:0 -16px 20px;padding:10px 16px}
+      .hero-card,.section,.demo-card{padding:22px}
+      .heat-row{grid-template-columns:90px 1fr 54px}
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <section class="hero">
+      <div class="hero-card">
+        <div class="eyebrow">09 — LLM Foundations</div>
+        <h1>Sequence Learning</h1>
+        <p class="lead">Full study-material version. This page keeps each concept separate and explains it in classroom style with examples and demos.</p>
+        <div class="teacher-note">Main idea: a model must not only know what each word means. It must know how words build meaning over time.</div>
+        <div class="hero-actions">
+          <a class="btn" href="#what-is-a-sequence">Start Reading</a>
+          <a class="btn secondary" href="#demo-rnn">RNN Demo</a>
+          <a class="btn secondary" href="#demo-attention">Attention Preview</a>
+        </div>
+      </div>
+      <div class="side-card">
+        <h2 style="margin-top:0">Learning bridge</h2>
+        <p class="small">This topic connects embeddings to attention and transformers.</p>
+        <div class="journey">
+          <div>Text as Data</div><div>Tokens</div><div>Embeddings</div><div class="active">Sequence Learning</div><div>Attention</div><div>Transformer</div><div>LLM</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="toc-wrap">
+      <div class="toc-head">
+        <strong>09 — Sequence Learning Deep Study Page</strong>
+        <button class="toc-toggle" onclick="toggleToc()">Show / Hide Contents</button>
+      </div>
+      <nav id="toc" class="toc"></nav>
+    </div>
+
+    <div class="intro-grid">
+      <div class="mini"><div class="badge">Core idea</div><h3>Order matters</h3><p>Same items in a different order can create a different meaning.</p></div>
+      <div class="mini"><div class="badge">Model need</div><h3>Memory matters</h3><p>The model must remember earlier tokens while reading later tokens.</p></div>
+      <div class="mini"><div class="badge">Bridge</div><h3>Attention comes next</h3><p>RNNs carry memory. Attention looks directly at relevant tokens.</p></div>
+    </div>
+
+    <main id="content"></main>
+
+    <section id="demo-rnn" class="demo-card">
+      <h2>Interactive Demo 1 — RNN Hidden State Simulator</h2>
+      <p>Type a short sentence. The demo tokenizes it, creates simple teaching embeddings, updates a hidden state, and gives a toy sentiment signal. This is not a trained model; it is a visual intuition tool.</p>
+      <div class="controls">
+        <input id="rnnText" type="text" value="I do not love AI" />
+        <button class="btn" onclick="runRnnDemo()">Run RNN Steps</button>
+        <button class="btn secondary" onclick="setRnnSample('I love AI')">Positive sample</button>
+        <button class="btn secondary" onclick="setRnnSample('I do not love AI')">Negation sample</button>
+      </div>
+      <div class="teacher-note">Teaching formula used here: hidden = tanh(0.65 × old hidden + embedding score)</div>
+      <div id="rnnSteps" class="demo-output"></div>
+      <div id="rnnSentiment"></div>
+    </section>
+
+    <section id="demo-attention" class="demo-card">
+      <h2>Interactive Demo 2 — Attention Focus Preview</h2>
+      <p>Attention asks: while generating the current output word, which input word should the model focus on?</p>
+      <div class="controls">
+        <input id="attInput" type="text" value="I bought a red car yesterday" />
+        <select id="attTarget" onchange="runAttentionDemo()">
+          <option value="मैंने">मैंने</option>
+          <option value="कल">कल</option>
+          <option value="लाल">लाल</option>
+          <option value="कार" selected>कार</option>
+          <option value="खरीदी">खरीदी</option>
+        </select>
+        <button class="btn" onclick="runAttentionDemo()">Show Attention</button>
+      </div>
+      <div class="teacher-note">Higher bar = more focus. In real transformers, attention is calculated using Query, Key, and Value vectors.</div>
+      <div id="attentionRows"></div>
+    </section>
+
+    <section class="section">
+      <h2>Final Master Bridge</h2>
+      <p>The full journey from this topic toward LLMs is:</p>
+      <div class="example">RNN remembers.
+LSTM / GRU remember better.
+Attention looks directly at what matters.
+Transformer is built on Attention.
+LLM is a large Transformer trained to predict the next token.</div>
+      <div class="teacher-note">Sequence Learning = teaching a model to understand ordered context.</div>
+    </section>
+
+    <div class="footer">09 — Sequence Learning | Part of AI / LLM Learning Demos</div>
+  </div>
+
+  <script>
+    const sections = [{"title": "What is a sequence?", "intro": "A sequence is data where the order of items matters. The items are not just collected together; they arrive one after another.", "deep": ["In normal tabular data, we usually have fixed columns. For example, x1 may always mean Study, x2 may always mean Sports, and x3 may always mean Music. The position is already defined by the column name.", "In sequence data, the position itself carries meaning. Word 1 came before word 2. Price on Monday came before price on Tuesday. Click 1 happened before click 2.", "This is why sequence learning is not only about recognizing the items. It is about recognizing the flow of items.", "A sequence model tries to learn how earlier items affect later items. This is the foundation for understanding language, speech, video, time-series, and modern LLM text generation."], "example": "A → B → C → D\nis different from\nD → C → B → A", "remember": "Sequence = ordered data where position and direction matter."}, {"title": "Why order matters", "intro": "Order matters because the same items can produce a completely different meaning when their positions change.", "deep": ["In language, order tells us who is doing the action and who is receiving it. In stock prices, order tells us whether the movement is rising or falling.", "A model that ignores order may only count which items are present. That can work for some simple tasks, but it fails badly when relationships matter.", "For LLMs, this is critical. A model must know that “not good” is different from “good”, and “man bites dog” is different from “dog bites man”.", "Sequence learning is the first major step toward contextual understanding."], "example": "Dog bites man.\nMan bites dog.\n\nSame words. Different order. Different meaning.", "remember": "Order can change the complete meaning."}, {"title": "Sequence in language", "intro": "Language is a sequence of tokens. A sentence is understood by reading tokens in order and building context step by step.", "deep": ["Every word can change the meaning of what came before and what comes after. The word “not” changes the meaning of “good”. The word “bank” changes meaning based on nearby words such as money, river, deposit, or water.", "A language model must capture grammar, tense, subject, object, negation, sentiment, and reference. All of these depend on order.", "If we treat a sentence only as a bag of words, we lose the relationships between words. Sequence learning solves this by processing tokens in order.", "This is why sequence learning is a bridge from embeddings to attention and transformers."], "example": "The movie was good.      → Positive\nThe movie was not good.  → Negative\n\nThe token “not” changes the meaning of “good”.", "remember": "Language understanding needs ordered context."}, {"title": "Sequence in time-series", "intro": "Time-series data is sequence data arranged by time.", "deep": ["Examples include sales per day, temperature readings, stock prices, sensor values, ECG signals, and website traffic.", "A single value may not tell the full story. A sequence of values can reveal trend, seasonality, spikes, drops, and cycles.", "If the values are increasing over time, the interpretation is different from the same values decreasing over time.", "This is why forecasting models preserve the time order instead of shuffling records randomly."], "example": "100 → 105 → 110 → 115 means rising trend.\n115 → 110 → 105 → 100 means falling trend.", "remember": "In time-series, order creates trend."}, {"title": "Sequence in speech", "intro": "Speech is a sequence of sound patterns over time.", "deep": ["A spoken sentence is not understood from one sound frame alone. The model must listen to how sounds evolve.", "Speech models learn phonemes, pauses, rhythm, stress, word boundaries, and pronunciation patterns.", "The same sound can be interpreted differently depending on the sounds before and after it.", "Speech-to-text is therefore a classic sequence learning problem."], "example": "Sound frame 1 → Sound frame 2 → Sound frame 3 → Word pattern\n\nThe model learns sound order and timing.", "remember": "Speech understanding depends on sound sequence."}, {"title": "Sequence in stock prices", "intro": "Stock prices are ordered financial signals.", "deep": ["A price of 100 by itself says very little. But 100 → 103 → 106 → 110 suggests a different market condition than 110 → 106 → 103 → 100.", "A sequence can reveal momentum, reversal, volatility, consolidation, or breakdown.", "In trading or investing experiments, sequence models may read a fixed window such as the last 10, 20, or 30 prices.", "The model tries to learn how previous movement influences the next movement."], "example": "Day 1: 100\nDay 2: 102\nDay 3: 105\nDay 4: 109\n\nThe sequence suggests upward movement.", "remember": "Price behavior is visible through ordered movement."}, {"title": "Sequence in user behavior", "intro": "A user journey is also a sequence.", "deep": ["A single click may not reveal much. But a chain of clicks can show intent.", "For example, Search → Product View → Add to Cart → Checkout indicates stronger purchase intent than random browsing.", "Similarly, Login → Error → Retry → Exit may indicate friction or frustration.", "Sequence learning can help in recommendations, churn prediction, fraud detection, and personalization."], "example": "Search shoes → View product → Add to cart → Checkout\n\nThis sequence indicates high purchase intent.", "remember": "User journey order reveals intent."}, {"title": "Why embeddings alone are not enough", "intro": "Embeddings give meaning to individual tokens, but they do not fully solve order and context.", "deep": ["The embedding for “good” may capture positive meaning. The embedding for “not” may capture negation. But the phrase “not good” requires a model to combine them in order.", "Embeddings answer: what does this token roughly mean?", "Sequence learning answers: how does this token change the meaning built so far?", "So after tokens and embeddings, we need a model that reads embeddings in sequence."], "example": "good → positive meaning\nnot → negation meaning\n\nnot + good → negative phrase meaning", "remember": "Embeddings give token meaning; sequence models build ordered meaning."}, {"title": "From word embeddings to sequence embeddings", "intro": "A word embedding represents one token. A sequence embedding represents a whole sentence or ordered input.", "deep": ["An RNN reads each word embedding one by one. After every word, it updates the hidden state.", "The final hidden state can act as a compressed representation of the whole sentence.", "This is very important because most tasks need a meaning for the whole input, not only individual words.", "For sentiment classification, the final sequence embedding may go into a classifier. For translation, it may be passed to a decoder."], "example": "I    → [0.2, 0.5]\nlove → [0.8, 0.1]\nAI   → [0.7, 0.9]\n\nAfter RNN:\n“I love AI” → final hidden state vector", "remember": "Sequence embedding = compressed meaning of the full ordered input."}, {"title": "RNN with word embeddings instead of simple numbers", "intro": "Real RNNs do not read words as single numbers. They read embedding vectors.", "deep": ["For intuition, we may say I = 1, love = 2, AI = 3. But real NLP uses vectors such as [0.2, 0.5, -0.1].", "The current input xₜ is an embedding vector. The hidden state hₜ is also a vector.", "The RNN uses matrix multiplication to combine the current embedding and previous hidden state.", "This allows the model to combine token meaning with sequence memory."], "example": "x₁ = embedding('I')    = [0.2, 0.5]\nx₂ = embedding('love') = [0.8, 0.1]\nx₃ = embedding('AI')   = [0.7, 0.9]\n\nh₀ + x₁ → h₁\nh₁ + x₂ → h₂\nh₂ + x₃ → h₃", "remember": "Embedding gives word meaning; RNN converts ordered embeddings into contextual meaning."}, {"title": "Why normal neural networks fail for sequences", "intro": "A normal feed-forward neural network expects fixed-size input.", "deep": ["In tabular ML, each row has a fixed number of columns. But sentences have variable length.", "One sentence may have one token, another may have twenty tokens, and another may have thousands.", "Also, normal networks do not naturally keep memory from previous tokens.", "So they are not naturally suited for ordered data where previous steps affect later steps."], "example": "AI\nI love AI\nI love learning artificial intelligence with practical demos\n\nHow many input neurons should we create?", "remember": "Normal neural networks do not naturally handle variable length, order, and memory."}, {"title": "Recurrent Neural Networks", "intro": "A Recurrent Neural Network, or RNN, is designed to process sequences.", "deep": ["It reads one item at a time and carries memory from one step to the next.", "The same RNN cell is reused repeatedly across the sequence. That repeated use is why it is called recurrent.", "At each step, it receives the current input and previous hidden state.", "It produces a new hidden state that represents the updated memory."], "example": "Current input + Previous memory → New memory\n\nhₜ = f(hₜ₋₁, xₜ)", "remember": "RNN = neural network with memory across sequence steps."}, {"title": "One word at a time thinking", "intro": "RNNs read a sentence one token at a time.", "deep": ["When reading “I love AI”, the model first processes “I”. Then it processes “love” along with memory of “I”. Then it processes “AI” along with memory of “I love”.", "This is similar to human reading. We do not understand each word completely isolated.", "Understanding grows as the sentence progresses.", "This is the core intuition behind recurrent sequence learning."], "example": "Step 1: I\nUnderstanding: speaker is self\n\nStep 2: love\nUnderstanding: speaker loves something\n\nStep 3: AI\nUnderstanding: speaker loves AI", "remember": "RNN builds meaning gradually."}, {"title": "Hidden state intuition", "intro": "The hidden state is the model's memory at a time step.", "deep": ["It is called hidden because we do not directly label what each number means.", "The model learns what to store during training. It may store signals related to sentiment, topic, grammar, tense, or negation.", "The hidden state after word 3 is not only about word 3. It is a summary of words 1 to 3.", "This is how the model carries context forward."], "example": "h₁ = memory after “I”\nh₂ = memory after “I love”\nh₃ = memory after “I love AI”", "remember": "Hidden state = running memory of the sequence so far."}, {"title": "Memory in neural networks", "intro": "Sequence models introduce memory into neural networks.", "deep": ["This memory is not a text note. It is a numeric vector.", "For a sentiment task, the vector may learn to track positive words, negative words, and negation.", "For stock prices, it may learn to track recent trend and volatility.", "For speech, it may learn sound patterns and boundaries."], "example": "h = [0.42, -0.18, 0.73, 0.11]\n\nThis vector is a learned memory representation.", "remember": "Neural memory is numeric and learned."}, {"title": "RNN step-by-step", "intro": "The RNN calculation combines current input with previous memory.", "deep": ["The formula is hₜ = tanh(Wx × xₜ + Wh × hₜ₋₁ + b).", "Wx controls how the current input affects the new memory.", "Wh controls how previous memory affects the new memory.", "tanh keeps the hidden state values bounded between -1 and 1."], "example": "hₜ = tanh(Wx × xₜ + Wh × hₜ₋₁ + b)\n\nxₜ = current input\nhₜ₋₁ = previous memory\nhₜ = new memory", "remember": "New memory is created from current input and previous memory."}, {"title": "RNN with simple sentence", "intro": "Let us use the sentence “I love AI”.", "deep": ["The model does not process the sentence as one flat object.", "It reads I, then love, then AI.", "After each token, the hidden state becomes a richer summary.", "The final hidden state can be used for prediction."], "example": "I    → RNN → h₁\nlove → RNN + h₁ → h₂\nAI   → RNN + h₂ → h₃\n\nh₃ represents “I love AI”.", "remember": "RNN processes the sentence step by step."}, {"title": "RNN hidden state calculation intuition", "intro": "A tiny calculation helps us see memory flow.", "deep": ["Suppose I = 1, love = 2, AI = 3.", "Let Wx = 0.5, Wh = 0.8, and h0 = 0.", "Without activation, h1 = 0.5, h2 = 1.4, and h3 = 2.62.", "This shows that every new hidden state contains both current input and previous memory."], "example": "h₁ = 0.5×1 + 0.8×0 = 0.5\nh₂ = 0.5×2 + 0.8×0.5 = 1.4\nh₃ = 0.5×3 + 0.8×1.4 = 2.62", "remember": "Hidden state carries accumulated sequence information."}, {"title": "Many-to-one sequence learning", "intro": "Many-to-one means many input steps produce one output.", "deep": ["This is common in classification.", "A sentence has many words, but the output may be one sentiment label.", "A sequence of stock prices may produce one decision: Buy, Sell, or Hold.", "Usually, the final hidden state is passed to a classifier."], "example": "The movie was not good → Negative\n\nMany words → one sentiment output", "remember": "Many-to-one summarizes a whole sequence into one answer."}, {"title": "One-to-many sequence learning", "intro": "One-to-many means one input produces many output steps.", "deep": ["Image captioning is a common example.", "A single image can produce a sentence such as “A dog is running”.", "A topic can produce a paragraph.", "The model starts from one source and generates tokens step by step."], "example": "Image → A → dog → is → running", "remember": "One input can generate a sequence."}, {"title": "Many-to-many sequence learning", "intro": "Many-to-many means a sequence produces another sequence.", "deep": ["This is one of the most important patterns in NLP.", "The input can be a sentence, and the output can be another sentence.", "It is used in translation, summarization, tagging, question answering, and dialogue.", "The output may have the same length as input or a different length."], "example": "Input sequence → Output sequence\n\nWords → Tags\nEnglish sentence → Hindi sentence", "remember": "Many-to-many is the base of tagging, translation, summarization, and dialogue."}, {"title": "Many-to-many same length vs different length", "intro": "Many-to-many tasks come in two major forms.", "deep": ["Same-length many-to-many gives one output for each input. Example: part-of-speech tagging.", "Different-length many-to-many allows output length to differ from input length. Example: translation.", "Same-length tasks can use hidden state at each input step.", "Different-length tasks usually need encoder-decoder generation."], "example": "Same length:\nI    → Pronoun\nlove → Verb\nAI   → Noun\n\nDifferent length:\nI love AI → मुझे AI पसंद है", "remember": "Same-length maps step to step; different-length converts one sequence into another sequence."}, {"title": "Problems with RNN", "intro": "Simple RNNs are useful, but they struggle with long sequences.", "deep": ["The hidden state is updated again and again.", "Old information can fade or be overwritten.", "If the sentence is short, this may not hurt much.", "If the sentence is long, the model may fail to connect distant words."], "example": "The book that I borrowed from my friend last week during the library event was amazing.\n\nThe model must connect “book” with “amazing”.", "remember": "Simple RNNs struggle with long sequences."}, {"title": "Vanishing gradient in sequence learning", "intro": "Vanishing gradient is a training problem.", "deep": ["During backpropagation through time, the error signal must travel backward across many steps.", "If it is repeatedly multiplied by small values, it becomes almost zero.", "Then early tokens receive very weak learning signal.", "This is one reason simple RNNs struggle with long-term dependencies."], "example": "0.5\n0.5 × 0.5 = 0.25\n0.25 × 0.5 = 0.125\n0.125 × 0.5 = 0.0625\n\nAfter many steps, the signal almost disappears.", "remember": "Vanishing gradient makes long-distance learning difficult."}, {"title": "Long-term dependency problem", "intro": "Long-term dependency means distant parts of a sequence depend on each other.", "deep": ["A subject may appear early, and its description may appear much later.", "The model must remember the early subject through many intermediate words.", "Simple RNNs are biased toward recent information.", "LSTM and GRU were designed to improve this."], "example": "The book that I borrowed last week was amazing.\n\n“book” and “amazing” are connected, but separated by many words.", "remember": "Long-term dependency is the memory challenge in sequence learning."}, {"title": "LSTM intuition", "intro": "LSTM means Long Short-Term Memory.", "deep": ["It improves RNN memory using gates.", "The forget gate decides what old memory to remove.", "The input gate decides what new information to store.", "The output gate decides what memory to expose at the current step."], "example": "Forget Gate → what old memory to remove\nInput Gate → what new memory to add\nOutput Gate → what memory to expose\nCell State → long-term memory path", "remember": "LSTM = RNN with controlled memory gates."}, {"title": "GRU intuition", "intro": "GRU means Gated Recurrent Unit.", "deep": ["It is a simpler gated RNN compared to LSTM.", "The update gate controls how much old memory to keep.", "The reset gate controls how much past memory to ignore.", "GRU often has fewer parameters and can train faster than LSTM."], "example": "Update Gate → keep old memory or use new memory\nReset Gate → use or ignore past memory", "remember": "GRU = simpler gated memory model."}, {"title": "Encoder idea", "intro": "The encoder reads the input sequence.", "deep": ["In translation, the encoder reads the source sentence.", "It creates hidden states step by step.", "The final representation is a compressed meaning of the input.", "The encoder's job is understanding."], "example": "I → love → AI → context vector", "remember": "Encoder = reads and represents the input sequence."}, {"title": "Decoder idea", "intro": "The decoder generates the output sequence.", "deep": ["It starts with a special START token.", "It predicts the next token.", "Then it uses the previous output to predict the next one.", "It stops when it predicts an END token."], "example": "<START> → मुझे\nमुझे → AI\nAI → पसंद\nपसंद → है\nहै → <END>", "remember": "Decoder = generates output tokens one by one."}, {"title": "Sequence-to-sequence learning", "intro": "Seq2Seq means sequence-to-sequence.", "deep": ["The input is a sequence and the output is also a sequence.", "Classic examples include translation, summarization, speech-to-text, and dialogue.", "An encoder reads the input.", "A decoder generates the output."], "example": "Input sequence → Encoder → Context vector → Decoder → Output sequence", "remember": "Seq2Seq = sequence in, sequence out."}, {"title": "Training decoder with teacher forcing", "intro": "Teacher forcing is a training technique for decoders.", "deep": ["During training, we already know the correct output sentence.", "So we feed the correct previous token to the decoder.", "This helps the decoder learn next-token prediction step by step.", "During real generation, the model uses its own previous prediction instead."], "example": "Training:\n<START> → predict मुझे\nमुझे → predict AI\nAI → predict पसंद\n\nReal generation:\nModel predicts token 1, then uses its own token 1 to predict token 2.", "remember": "Teacher forcing uses correct previous tokens during training."}, {"title": "Machine translation example", "intro": "Machine translation is a sequence-to-sequence task.", "deep": ["The model first understands the source sentence.", "Then it generates the target sentence.", "Word-by-word replacement is often unnatural.", "The model must learn meaning, grammar, and word order of the target language."], "example": "Input:  I love AI\nOutput: मुझे AI पसंद है\n\nMeaning first, generation second.", "remember": "Translation needs meaning-based sequence generation."}, {"title": "Text generation example", "intro": "Text generation is repeated next-token prediction.", "deep": ["Given previous tokens, the model predicts the next token.", "Then that next token is added to the sequence.", "The model repeats this process to generate longer text.", "Modern LLMs scale this idea using Transformer architecture."], "example": "I love machine → learning\nI love machine learning → because\nI love machine learning because → it", "remember": "Text generation = repeated next-token prediction."}, {"title": "Context vector bottleneck", "intro": "Basic encoder-decoder models squeeze input meaning into one context vector.", "deep": ["For short sentences, this may work reasonably well.", "For long sentences, one vector may not store all details.", "This is like reading a whole chapter and writing all important points on one sticky note.", "Attention was created to reduce this bottleneck."], "example": "Long input sentence → Encoder → One context vector → Decoder\n\nProblem: too much information squeezed into one vector.", "remember": "The context vector bottleneck limits basic Seq2Seq models."}, {"title": "Tiny attention calculation", "intro": "Attention creates a custom context for each output step.", "deep": ["It compares the decoder's current state with each encoder hidden state.", "This gives attention scores.", "Softmax converts scores into weights that sum to 1.", "The model then creates a weighted context vector."], "example": "Input: I bought car\nTarget output word: कार\n\nScores:\nI      → 0.16\nbought → 0.40\ncar    → 0.72\n\nSoftmax weights:\nI      → 0.24\nbought → 0.31\ncar    → 0.43", "remember": "Attention = score, softmax, weighted focus."}, {"title": "Why sequence learning leads naturally to Attention", "intro": "Attention is the natural next step after RNN, LSTM, GRU, and Seq2Seq.", "deep": ["RNNs carry memory step by step.", "LSTM and GRU improve memory using gates.", "Encoder-decoder compresses a sequence into a context vector.", "Attention says: instead of relying only on compressed memory, look directly at what matters."], "example": "Seq2Seq says: compress everything into one vector.\nAttention says: look directly at what matters.", "remember": "Attention is the next natural step after sequence memory."}, {"title": "Bridge to Transformers and LLMs", "intro": "Transformers make attention the main engine.", "deep": ["Instead of reading only step by step like RNNs, Transformers let tokens look at other tokens directly.", "This allows better handling of long context and parallel processing.", "Modern LLMs are large Transformer models trained mainly to predict the next token.", "So the path is: Text → Tokens → Embeddings → Sequence Learning → Attention → Transformer → LLM."], "example": "Text → Tokens → Embeddings → Sequence Learning → Attention → Transformer → LLM", "remember": "Sequence Learning prepares us for Attention, Transformers, and LLMs."}];
+
+    function slug(s){
+      return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+    }
+
+    function renderSections(){
+      const content = document.getElementById('content');
+      const toc = document.getElementById('toc');
+      content.innerHTML = '';
+      toc.innerHTML = '';
+
+      sections.forEach((sec, i) => {
+        const id = slug(sec.title);
+        const a = document.createElement('a');
+        a.href = '#' + id;
+        a.textContent = `${i+1}. ${sec.title}`;
+        toc.appendChild(a);
+
+        const deepItems = sec.deep.map(item => `<div class="deep-item">${item}</div>`).join('');
+        const node = document.createElement('section');
+        node.className = 'section';
+        node.id = id;
+        node.innerHTML = `
+          <h2><span class="num">${String(i+1).padStart(2,'0')}</span>${sec.title}</h2>
+          <p><strong>${sec.intro}</strong></p>
+          <div class="deep-list">${deepItems}</div>
+          <div class="example">${sec.example}</div>
+          <div class="teacher-note">${sec.remember}</div>
+        `;
+        content.appendChild(node);
+      });
+    }
+
+    function toggleToc(){ document.getElementById('toc').classList.toggle('open'); }
+    function tokenize(text){ return text.trim().split(/\s+/).filter(Boolean); }
+
+    function embeddingScore(token){
+      const t = token.toLowerCase();
+      const pos = ['love','like','good','great','amazing','excellent','useful','happy','beautiful'];
+      const neg = ['bad','poor','hate','terrible','awful','sad','wrong','not','never','no'];
+      if(pos.includes(t)) return 0.85;
+      if(neg.includes(t)) return -0.85;
+      let sum = 0;
+      for(let i=0;i<t.length;i++) sum += t.charCodeAt(i);
+      return ((sum % 100) / 100) - 0.5;
+    }
+
+    function runRnnDemo(){
+      const text = document.getElementById('rnnText').value;
+      const tokens = tokenize(text);
+      const steps = document.getElementById('rnnSteps');
+      const sentiment = document.getElementById('rnnSentiment');
+      steps.innerHTML = '';
+      sentiment.innerHTML = '';
+
+      let hidden = 0;
+      let negation = false;
+
+      tokens.forEach((tok, idx) => {
+        let emb = embeddingScore(tok);
+        const low = tok.toLowerCase();
+
+        if(['not','never','no'].includes(low)){ negation = true; }
+        else if(negation && emb > 0.25){ emb = emb * -1.15; negation = false; }
+
+        const oldHidden = hidden;
+        hidden = Math.tanh(0.65 * hidden + emb);
+        const width = Math.min(100, Math.round(Math.abs(hidden) * 100));
+
+        const card = document.createElement('div');
+        card.className = 'token-card';
+        card.innerHTML = `
+          <h4>Step ${idx+1}: ${tok}</h4>
+          <div class="small">Embedding score: ${emb.toFixed(3)}</div>
+          <div class="small">Old hidden: ${oldHidden.toFixed(3)}</div>
+          <div class="small">New hidden: ${hidden.toFixed(3)}</div>
+          <div class="bar"><span style="width:${width}%"></span></div>
+          <div class="small">Hidden state is the running memory after this token.</div>
+        `;
+        steps.appendChild(card);
+      });
+
+      const positive = hidden >= 0;
+      sentiment.className = positive ? 'sentiment' : 'sentiment neg';
+      sentiment.textContent = positive
+        ? `Final toy prediction: Positive / supportive signal (${hidden.toFixed(3)})`
+        : `Final toy prediction: Negative / caution signal (${hidden.toFixed(3)})`;
+    }
+
+    function setRnnSample(value){ document.getElementById('rnnText').value = value; runRnnDemo(); }
+
+    const focusMap = {
+      'मैंने': {'i':0.46,'bought':0.35},
+      'कल': {'yesterday':0.75},
+      'लाल': {'red':0.78},
+      'कार': {'car':0.82},
+      'खरीदी': {'bought':0.78}
+    };
+
+    function runAttentionDemo(){
+      const text = document.getElementById('attInput').value;
+      const target = document.getElementById('attTarget').value;
+      const tokens = tokenize(text);
+      const rows = document.getElementById('attentionRows');
+      rows.innerHTML = '';
+
+      const map = focusMap[target] || {};
+      let raw = tokens.map(tok => {
+        const key = tok.toLowerCase();
+        let base = map[key] || 0.05;
+        if(target === 'मैंने' && key === 'i') base = 0.46;
+        return base;
+      });
+
+      const total = raw.reduce((a,b) => a+b, 0) || 1;
+      const weights = raw.map(x => x / total);
+
+      tokens.forEach((tok, i) => {
+        const pct = Math.round(weights[i] * 100);
+        const row = document.createElement('div');
+        row.className = 'heat-row';
+        row.innerHTML = `
+          <div class="heat-label">${tok}</div>
+          <div class="bar"><span style="width:${pct}%"></span></div>
+          <div class="small">${pct}%</div>
+        `;
+        rows.appendChild(row);
+      });
+
+      const note = document.createElement('div');
+      note.className = 'teacher-note';
+      note.innerHTML = `Generating <strong>${target}</strong>: attention creates a weighted focus over the input words.`;
+      rows.appendChild(note);
+    }
+
+    renderSections();
+    runRnnDemo();
+    runAttentionDemo();
+  </script>
+</body>
+</html>
