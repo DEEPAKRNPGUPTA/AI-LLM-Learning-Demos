@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>11 — Transformer | AI/LLM Learning</title>
+  <style>
+    :root{
+      --bg:#07111f;--panel:#0d1b2e;--panel2:#10243d;--text:#eaf2ff;--muted:#a9bdd8;--line:#24405f;
+      --accent:#72e6a6;--accent2:#79b8ff;--warn:#ffd166;--hot:#ff7b8f;--code:#06101d;--code-text:#d7ecff;--code-border:#193451;--shadow:0 22px 60px rgba(0,0,0,.35);
+      --body-bg:radial-gradient(circle at top left,#132b48 0,#07111f 38%,#050913 100%);
+      --hero-bg:linear-gradient(135deg,rgba(114,230,166,.14),rgba(121,184,255,.08),rgba(255,209,102,.06));
+      --card-bg:rgba(13,27,46,.82);--section-bg:rgba(13,27,46,.80);--toc-bg:rgba(13,27,46,.94);
+      --pill-bg:rgba(255,255,255,.04);--control-bg:#0a1728;--table-head:rgba(121,184,255,.12);
+      --max:1180px;
+    }
+    body.light-mode{
+      --bg:#f7fafc;--panel:#ffffff;--panel2:#eef6ff;--text:#172033;--muted:#52657d;--line:#d8e3ef;
+      --accent:#0f8f55;--accent2:#1667b7;--warn:#a86b00;--hot:#c23956;--code:#f2f6fb;--code-text:#24405f;--code-border:#9eb7cf;--shadow:0 16px 42px rgba(17,35,62,.10);
+      --body-bg:linear-gradient(180deg,#ffffff 0,#f6fbff 42%,#eef5fb 100%);
+      --hero-bg:linear-gradient(135deg,rgba(15,143,85,.10),rgba(22,103,183,.08),rgba(255,183,77,.12));
+      --card-bg:rgba(255,255,255,.92);--section-bg:rgba(255,255,255,.94);--toc-bg:rgba(255,255,255,.96);
+      --pill-bg:rgba(15,143,85,.06);--control-bg:#ffffff;--table-head:rgba(22,103,183,.08);
+    }
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--body-bg);color:var(--text);line-height:1.65;font-size:14.5px}
+    a{color:var(--accent2);text-decoration:none} a:hover{text-decoration:underline}
+    .hero{padding:54px 22px 34px;border-bottom:1px solid var(--line);background:var(--hero-bg)}
+    .wrap{max-width:var(--max);margin:0 auto}.badge{display:inline-flex;gap:8px;align-items:center;padding:7px 12px;border:1px solid rgba(114,230,166,.45);border-radius:999px;color:var(--accent);background:rgba(114,230,166,.08);font-weight:700;font-size:13px}
+    h1{font-size:clamp(34px,5vw,64px);line-height:1.05;margin:18px 0 12px;letter-spacing:-.04em} .subtitle{font-size:20px;color:var(--muted);max-width:920px}.hero-grid{display:grid;grid-template-columns:1.4fr .8fr;gap:22px;margin-top:28px}.card{background:var(--card-bg);border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:var(--shadow)}
+    .pillrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.pill{padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--pill-bg);font-size:13px}
+    .layout{display:grid;grid-template-columns:285px minmax(0,1fr);gap:24px;max-width:var(--max);margin:0 auto;padding:26px 22px 80px}.toc{position:sticky;top:18px;align-self:start;max-height:calc(100vh - 36px);overflow:auto;background:var(--toc-bg);border:1px solid var(--line);border-radius:20px;padding:16px}.toc h3{margin:0 0 10px;font-size:15px;color:var(--accent)}.toc a{display:block;color:var(--muted);padding:7px 8px;border-radius:10px;font-size:13px}.toc a:hover{background:rgba(121,184,255,.1);text-decoration:none}.content{min-width:0}
+    section{background:var(--section-bg);border:1px solid var(--line);border-radius:22px;margin-bottom:22px;box-shadow:var(--shadow);overflow:hidden}
+    .sectionHead{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;background:transparent;color:var(--text);border:0;padding:24px 26px;text-align:left;cursor:pointer}.sectionHead h2{font-size:30px;line-height:1.18;margin:0;letter-spacing:-.02em}.sectionBody{padding:0 26px 26px}.chev{color:var(--accent);font-weight:900;font-size:20px}.collapsed .sectionBody{display:none}.collapsed .chev{transform:rotate(-90deg)}
+    h2{font-size:30px;line-height:1.18;margin:0 0 16px;letter-spacing:-.02em} h3{font-size:21px;margin:24px 0 10px;color:var(--text)} h4{font-size:17px;margin:18px 0 8px;color:var(--accent)}
+    p{margin:10px 0;color:var(--text)}.muted{color:var(--muted)}.callout{border-left:4px solid var(--accent);background:rgba(114,230,166,.08);padding:14px 16px;border-radius:14px;margin:16px 0}.warn{border-left-color:var(--warn);background:rgba(255,209,102,.08)}.hot{border-left-color:var(--hot);background:rgba(255,123,143,.08)}
+    pre{background:var(--code);border:1px solid var(--code-border);border-radius:16px;padding:15px;overflow:auto;color:var(--code-text);font-size:12.6px;line-height:1.55} code{background:rgba(255,255,255,.07);padding:2px 5px;border-radius:6px;color:var(--text)} body.light code{background:rgba(15,143,85,.08)}
+    table{width:100%;border-collapse:collapse;margin:14px 0;overflow:hidden;border-radius:14px} th,td{border:1px solid var(--line);padding:10px;vertical-align:top} th{background:var(--table-head);color:var(--text);text-align:left} td{color:var(--text)}.two{display:grid;grid-template-columns:1fr 1fr;gap:16px}.three{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.mini{background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:16px;padding:15px}
+
+    .topbar{position:sticky;top:0;z-index:60;border-bottom:1px solid var(--line);background:rgba(7,17,31,.78);backdrop-filter:blur(14px)}
+    body.light-mode .topbar{background:rgba(255,255,255,.82)}
+    .topbar-inner{max-width:var(--max);margin:0 auto;padding:10px 22px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .brand-mini{font-weight:900;color:var(--text);letter-spacing:-.02em}.themeToggle{border:1px solid var(--line);background:var(--section-bg);color:var(--text);border-radius:999px;padding:9px 13px;font-weight:900;cursor:pointer;box-shadow:0 8px 22px rgba(0,0,0,.10)}
+    .themeToggle:hover{border-color:var(--accent)}
+    .floatBtn{position:fixed;right:18px;top:94px;z-index:50;background:linear-gradient(135deg,var(--accent),#b6ffd2);color:#062012;border:0;border-radius:999px;padding:12px 16px;font-weight:900;box-shadow:0 12px 30px rgba(0,0,0,.35);cursor:pointer}.floatPanel{position:fixed;right:18px;top:146px;z-index:49;width:285px;max-height:70vh;overflow:auto;background:var(--toc-bg);border:1px solid var(--line);border-radius:18px;padding:14px;box-shadow:var(--shadow);display:none}.floatPanel.show{display:block}.floatPanel a{display:block;padding:8px;border-radius:9px;color:var(--muted);font-size:13px}.floatPanel a:hover{background:rgba(121,184,255,.12);text-decoration:none}
+    .demo{background:linear-gradient(180deg,rgba(121,184,255,.08),rgba(114,230,166,.05));border:1px solid #2d557b}.controls{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0}.controls button,.controls select,.controls input{border:1px solid var(--line);background:var(--control-bg);color:var(--text);border-radius:12px;padding:10px 12px}.controls button{cursor:pointer;font-weight:700}.controls button:hover{border-color:var(--accent)}.tokens{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.tok{padding:9px 12px;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.05);cursor:pointer}.tok.active{background:rgba(114,230,166,.18);border-color:var(--accent);color:var(--text)}.matrix{display:grid;gap:4px;margin-top:12px;overflow:auto}.cell{min-width:58px;text-align:center;padding:8px;border-radius:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);font-size:12px}.headcell{background:rgba(121,184,255,.12);font-weight:800}.blocked{background:rgba(255,123,143,.14);color:#ffb6c1}.allowed{background:rgba(114,230,166,.13)}.bar{height:12px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden}.bar span{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:999px}.quizQ{margin:16px 0;padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.035)}.answer{display:none;color:var(--accent);font-weight:800;margin-top:8px}.footer{text-align:center;color:var(--muted);padding:30px}
+    @media(max-width:900px){.hero-grid,.layout,.two,.three{grid-template-columns:1fr}.toc{position:relative;top:auto;max-height:none}.floatBtn{top:auto;bottom:18px}.floatPanel{top:auto;bottom:72px;width:calc(100vw - 36px)}section{padding:20px}body{font-size:14px}}
+  </style>
+</head>
+<body>
+<div class="topbar"><div class="topbar-inner"><div class="brand-mini">11 — Transformer</div><button class="themeToggle" id="themeToggle" onclick="toggleTheme()">☀️ Light mode</button></div></div>
+<button class="floatBtn" onclick="toggleFloat()">Show / Hide</button>
+<div class="floatPanel" id="floatPanel"></div>
+<header class="hero">
+  <div class="wrap">
+    <span class="badge">AI/LLM Learning Series · 11</span>
+    <h1>Transformer</h1>
+    <p class="subtitle">A deep single-page study guide explaining how Transformers turn tokens into vectors, update meaning through attention and neural networks, and predict the next token.</p>
+    <div class="hero-grid">
+      <div class="card">
+        <h3>Core idea</h3>
+        <p>A Transformer is a neural network architecture that uses self-attention, feed-forward networks, residual connections, and normalization to repeatedly improve token representations.</p>
+        <div class="callout"><strong>Memory line:</strong> Attention is the mechanism. Transformer is the architecture. GPT is a decoder-only Transformer trained for next-token prediction.</div>
+      </div>
+      <div class="card">
+        <h3>What this page includes</h3>
+        <div class="pillrow">
+          <span class="pill">19 learning steps</span><span class="pill">Q/K/V</span><span class="pill">Masks</span><span class="pill">Encoder/Decoder</span><span class="pill">KV Cache</span><span class="pill">Demos</span><span class="pill">Quiz</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="layout">
+  <nav class="toc" id="toc"><h3>Contents</h3></nav>
+  <main class="content">
+
+<section id="s1"><button class="sectionHead" onclick="toggleSec(this)"><h2>1. Why Transformer Was Needed</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>Before Transformers, sequence learning mainly used RNNs, LSTMs, and GRUs. These models process tokens one after another.</p>
+<pre>word 1 → word 2 → word 3 → word 4</pre>
+<p>This sequence-by-sequence flow creates a memory bottleneck. Information from early tokens must travel through many hidden states before it reaches later tokens.</p>
+<div class="two"><div class="mini"><h4>RNN-style thinking</h4><p>I remember what came before through one moving memory.</p></div><div class="mini"><h4>Transformer-style thinking</h4><p>I compare every token with every other token and build direct relationships.</p></div></div>
+<p>Transformers helped because tokens can directly attend to other tokens. This makes long-distance relationships easier and training more parallelizable on GPUs.</p>
+<div class="callout"><strong>Remember:</strong> RNN carries memory step by step. Transformer lets tokens directly talk to each other.</div><h3>Why this became a scaling problem</h3><p>RNN-style models were meaningful historically, but large-scale language learning needs massive parallel training. A Transformer can compare many token relationships using matrix operations, which works much better with GPUs.</p><p>The important shift is not only speed. The shift is representation. A token can directly collect information from another token without waiting for hidden state memory to carry it forward.</p></div></section>
+
+<section id="s2"><button class="sectionHead" onclick="toggleSec(this)"><h2>2. High-Level Transformer Architecture</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>A Transformer is built by stacking repeated blocks. Each block improves the representation of every token.</p>
+<pre>Raw text
+  ↓
+Tokens
+  ↓
+Token IDs
+  ↓
+Embeddings
+  ↓
+Add position information
+  ↓
+Transformer blocks
+  ↓
+Final hidden vectors
+  ↓
+Output prediction</pre>
+<p>The Transformer does not read raw text directly. It works with numeric vectors. The architecture repeatedly updates those vectors until they become context-rich.</p>
+<table><tr><th>Part</th><th>Purpose</th></tr><tr><td>Embedding</td><td>Starting numeric meaning of token</td></tr><tr><td>Position</td><td>Order information</td></tr><tr><td>Attention</td><td>Tokens collect information from other tokens</td></tr><tr><td>FFN</td><td>Each token processes its internal representation</td></tr><tr><td>Output layer</td><td>Converts hidden vectors into token scores</td></tr></table><h3>Repeated block idea</h3><p>One Transformer block gives one round of improvement. Many blocks create many rounds of token communication and transformation. Early layers may learn local grammar-like patterns, while deeper layers may represent richer meaning and task-relevant structure.</p></div></section>
+
+<section id="s3"><button class="sectionHead" onclick="toggleSec(this)"><h2>3. Input Tokens and Embeddings</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>Text first becomes tokens. Tokens become token IDs. Token IDs become embeddings.</p>
+<pre>Text → Tokens → Token IDs → Embeddings</pre>
+<p>Example:</p><pre>"I love machine learning"
+→ ["I", "love", "machine", "learning"]
+→ [40, 1842, 6221, 3150]
+→ vectors from embedding table</pre>
+<p>A token ID is only an index. It tells the model which row to pick from the embedding table. The embedding vector is the starting meaning.</p>
+<div class="callout"><strong>Important:</strong> Initial embedding is not final meaning. Transformer layers turn it into contextual meaning.</div>
+<p>Example: the token <code>bank</code> may start with the same embedding in both sentences, but after attention it becomes different:</p>
+<pre>I deposited money in the bank.     → financial meaning
+We sat near the river bank.        → river-side meaning</pre><h3>Static vs contextual meaning</h3><p>The embedding table gives a starting vector for a token, but the Transformer changes that vector based on surrounding tokens. This is why the same word can behave differently in different sentences.</p><p>For learning, keep this difference clear: token ID is just an index, embedding is starting meaning, and Transformer output is contextual meaning.</p></div></section>
+
+<section id="s4"><button class="sectionHead" onclick="toggleSec(this)"><h2>4. Positional Encoding / Position Embeddings</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>Transformer processes tokens together, so it needs explicit position information.</p>
+<pre>Dog bites man.
+Man bites dog.</pre>
+<p>Same words, different order, different meaning. Position tells the model where each token appears.</p>
+<pre>final input vector = token embedding + position information</pre>
+<p>There are different position methods. Classic Transformers used sinusoidal positional encoding. Many models use learned position embeddings. Modern LLMs may use RoPE or other methods.</p>
+<div class="callout"><strong>Memory line:</strong> Token embedding tells what the token is. Position tells where the token is.</div><h3>Absolute and relative position</h3><p>Some methods tell the model the absolute position, like position 1 or position 2. Other methods help the model understand relative distance, such as one token being three places before another. Modern models care a lot about this because longer context windows need strong position handling.</p></div></section>
+
+<section id="s5"><button class="sectionHead" onclick="toggleSec(this)"><h2>5. Self-Attention Inside Transformer</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>Self-attention means tokens in the same sequence look at each other.</p>
+<pre>The cat drank milk because it was hungry.</pre>
+<p>For <strong>it</strong>, the model may attend to <strong>cat</strong>. For <strong>drank</strong>, the model may attend to <strong>cat</strong> and <strong>milk</strong>.</p>
+<p>Attention calculates scores, turns them into weights, and uses those weights to mix value vectors.</p>
+<table><tr><th>Concept</th><th>Simple meaning</th></tr><tr><td>Attention score</td><td>How strongly one token matches another</td></tr><tr><td>Attention weight</td><td>Normalized importance, often sums to 1 per row</td></tr><tr><td>Weighted mixture</td><td>New token vector created from useful token information</td></tr></table>
+<pre>new drank = 0.05×The + 0.40×cat + 0.15×drank + 0.40×milk</pre><h3>Context mixing</h3><p>Attention is a context-mixing operation. It does not simply select one word. It creates a weighted mixture of value vectors, so each token representation becomes a blend of useful information from the sequence.</p></div></section>
+
+<section id="s6"><button class="sectionHead" onclick="toggleSec(this)"><h2>6. Query, Key, Value</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>Self-attention creates three learned versions of each token vector: Query, Key, and Value.</p>
+<table><tr><th>Q/K/V</th><th>Intuition</th></tr><tr><td>Query</td><td>What am I looking for?</td></tr><tr><td>Key</td><td>What do I contain for matching?</td></tr><tr><td>Value</td><td>What information do I provide?</td></tr></table>
+<pre>Attention(Q, K, V) = softmax(QKᵀ / √dₖ) V</pre>
+<p>Q and K decide how much attention. V provides the actual information that gets mixed.</p>
+<div class="callout"><strong>Memory line:</strong> Q and K produce weights. Weights mix V.</div><h3>Why three views?</h3><p>The same token needs different roles. As a query it asks for information. As a key it allows other tokens to match with it. As a value it supplies information. Separate learned projections make this flexible.</p></div></section>
+
+<section id="s7"><button class="sectionHead" onclick="toggleSec(this)"><h2>7. Attention Matrix and Masked Attention</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>For 4 tokens, the attention matrix is 4 × 4. Each row says how one token attends to all tokens.</p>
+<pre>           The   cat   drank   milk
+The        .40   .30    .20    .10
+cat        .10   .30    .40    .20
+drank      .05   .40    .15    .40
+milk       .05   .30    .45    .20</pre>
+<p>In decoder-only models, attention is causal/masked. A token can look only at itself and previous tokens, not future tokens.</p>
+<pre>              I   love   machine   learning
+I             ✅    ❌       ❌         ❌
+love          ✅    ✅       ❌         ❌
+machine       ✅    ✅       ✅         ❌
+learning      ✅    ✅       ✅         ✅</pre>
+<div class="warn callout"><strong>Causal mask:</strong> prevents future-token cheating during next-token prediction.</div><h3>Two mask families</h3><p>A padding mask ignores fake padding tokens used for batching. A causal mask blocks future tokens in decoder generation. In real systems, both kinds of masks may be combined.</p></div></section>
+
+<section id="s8"><button class="sectionHead" onclick="toggleSec(this)"><h2>8. Multi-Head Attention</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>One attention head gives one learned view. Multi-head attention gives several views in parallel.</p>
+<pre>Input token vectors
+   ↓
+Head 1 attention
+Head 2 attention
+Head 3 attention
+Head 4 attention
+   ↓
+Concatenate + linear projection
+   ↓
+Multi-head output</pre>
+<p>Different heads may focus on different relationships: pronoun reference, subject-object relation, phrase structure, or cause-effect clues.</p>
+<div class="callout"><strong>Memory line:</strong> Multi-head attention gives the Transformer several attention lenses at once.</div><h3>Many lenses, one representation</h3><p>Each head works in its own learned subspace. After all heads run, their outputs are concatenated and projected back to the model dimension. This is why the next layer can receive the same shape as the previous layer.</p></div></section>
+
+<section id="s9"><button class="sectionHead" onclick="toggleSec(this)"><h2>9. Feed Forward Network</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>After attention, every token has collected context. The Feed Forward Network processes each token internally.</p>
+<div class="two"><div class="mini"><h4>Attention</h4><p>Tokens talk to other tokens.</p></div><div class="mini"><h4>FFN / MLP</h4><p>Each token thinks internally.</p></div></div>
+<pre>Input vector
+  ↓
+Linear layer 1
+  ↓
+Activation
+  ↓
+Linear layer 2
+  ↓
+Output vector</pre>
+<p>Often the FFN expands then compresses:</p><pre>768 → 3072 → 768</pre>
+<p>Modern LLMs may use activations such as GELU or SwiGLU.</p><h3>Where much capacity lives</h3><p>In many Transformer models, the feed-forward layers contain a large portion of parameters. Attention routes information between tokens; FFNs transform and store many learned patterns inside token representations.</p></div></section>
+
+<section id="s10"><button class="sectionHead" onclick="toggleSec(this)"><h2>10. Residual Connections</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>Residual connections preserve old information and add learned updates.</p>
+<pre>output = input + transformation(input)</pre>
+<p>Instead of rebuilding the whole vector from scratch, the model learns corrections.</p>
+<div class="callout"><strong>Memory line:</strong> Do not erase. Improve.</div>
+<p>This helps information and gradients flow through very deep Transformer stacks.</p><h3>Gradient flow</h3><p>Residual connections also help backpropagation. The learning signal can travel through skip paths more easily, which makes deep networks train more reliably.</p></div></section>
+
+<section id="s11"><button class="sectionHead" onclick="toggleSec(this)"><h2>11. Layer Normalization</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>Layer normalization stabilizes the values inside each token vector. It keeps signals from becoming too large, too small, or uneven.</p>
+<pre>normalized value = (value - mean) / standard deviation</pre>
+<p>You often see <strong>Add & Norm</strong> in diagrams:</p>
+<pre>Add = residual connection
+Norm = layer normalization</pre>
+<p>Classic diagrams often show post-norm. Many modern LLMs use pre-norm because it is more stable for very deep training.</p>
+<div class="callout"><strong>Memory line:</strong> Residual preserves. LayerNorm stabilizes.</div><h3>Pre-norm note</h3><p>For beginner diagrams, Add & Norm after each sublayer is easy to understand. In many modern LLMs, LayerNorm often happens before attention and before FFN. The goal is the same: keep values stable while allowing deep stacking.</p></div></section>
+
+<section id="s12"><button class="sectionHead" onclick="toggleSec(this)"><h2>12. One Transformer Block</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<pre>Input token vectors
+  ↓
+Multi-head attention
+  ↓
+Add & Norm
+  ↓
+Feed Forward Network
+  ↓
+Add & Norm
+  ↓
+Output token vectors</pre>
+<p>A Transformer block has two main jobs:</p>
+<table><tr><th>Stage</th><th>Job</th></tr><tr><td>Attention</td><td>Collect useful information from other tokens</td></tr><tr><td>FFN</td><td>Transform each token’s updated information</td></tr></table>
+<div class="callout"><strong>Memory line:</strong> Transformer block = tokens talk, then tokens think.</div><h3>What stays same and what changes</h3><p>A block usually keeps sequence length and vector dimension the same. It does not remove tokens. It improves the meaning inside each token vector. This is why blocks can be stacked repeatedly.</p></div></section>
+
+<section id="s13"><button class="sectionHead" onclick="toggleSec(this)"><h2>13. Encoder Block</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>An encoder reads the full input and builds understanding. Encoder self-attention is usually bidirectional: tokens can look left and right.</p>
+<pre>The bank was flooded after heavy rain.</pre>
+<p>To understand <strong>bank</strong>, the encoder can look at future words like <strong>flooded</strong> and <strong>rain</strong>.</p>
+<p>Encoder-only models are good for classification, search, embeddings, similarity, and document understanding.</p>
+<div class="callout"><strong>Memory line:</strong> Encoder = understanding machine.</div><h3>Encoder use cases</h3><p>Encoder-only models are especially useful when you need a representation of the input: classification, semantic search, sentence similarity, document embeddings, and extraction-style tasks.</p></div></section>
+
+<section id="s14"><button class="sectionHead" onclick="toggleSec(this)"><h2>14. Decoder Block</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>A decoder generates output tokens one at a time. It uses masked self-attention so it cannot look at future tokens.</p>
+<pre>Prompt: The cat drank
+Prediction: milk</pre>
+<p>For GPT-style decoder-only models, the core block is:</p>
+<pre>Input vectors
+  ↓
+Masked multi-head self-attention
+  ↓
+Add & Norm
+  ↓
+Feed Forward Network
+  ↓
+Add & Norm
+  ↓
+Output vectors</pre>
+<div class="callout"><strong>Memory line:</strong> Decoder = generation machine with future masking.</div><h3>Decoder logic</h3><p>The decoder is built to match writing. When writing the next word, you can only use what has already been written. This is why future masking is not a weakness; it matches the generation task.</p></div></section>
+
+<section id="s15"><button class="sectionHead" onclick="toggleSec(this)"><h2>15. Encoder-Decoder Transformer</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>The original Transformer used both encoder and decoder, especially for translation and sequence-to-sequence tasks.</p>
+<pre>Source input → Encoder → Cross-attention → Decoder → Target output</pre>
+<p>It uses three attention types:</p>
+<ol><li>Encoder self-attention</li><li>Decoder masked self-attention</li><li>Encoder-decoder cross-attention</li></ol>
+<p>In cross-attention, decoder queries attend to encoder keys and values.</p>
+<div class="callout"><strong>Memory line:</strong> Encoder-decoder Transformer reads one sequence and generates another.</div><h3>Cross-attention intuition</h3><p>In translation, the encoder reads the source sentence once. While the decoder writes the target sentence, cross-attention lets it look back at the relevant source tokens for each generated token.</p></div></section>
+
+<section id="s16"><button class="sectionHead" onclick="toggleSec(this)"><h2>16. Decoder-Only Transformer and GPT</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>GPT-style models are decoder-only Transformers. They treat everything as text continuation.</p>
+<pre>Prompt tokens
+  ↓
+Decoder blocks with causal attention
+  ↓
+Next-token prediction
+  ↓
+Append token
+  ↓
+Repeat</pre>
+<p>This is flexible because many tasks can be written as prompt completion: translation, summarization, classification, code generation, question answering, and chat.</p>
+<div class="callout"><strong>Memory line:</strong> GPT = decoder-only Transformer trained for next-token prediction.</div><h3>Why GPT can do many tasks</h3><p>Decoder-only models can treat many tasks as text continuation. A prompt such as “Translate this”, “Summarize this”, or “Write code for this” becomes context, and the answer becomes the continuation.</p></div></section>
+
+<section id="s17"><button class="sectionHead" onclick="toggleSec(this)"><h2>17. Training vs Inference</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<table><tr><th>Topic</th><th>Training</th><th>Inference</th></tr><tr><td>Goal</td><td>Learn weights</td><td>Use fixed weights</td></tr><tr><td>Uses backprop?</td><td>Yes</td><td>No</td></tr><tr><td>Input</td><td>Training text</td><td>User prompt</td></tr><tr><td>Output</td><td>Loss + weight updates</td><td>Generated tokens</td></tr></table>
+<p>Training changes the model. Inference uses the trained model to produce output.</p>
+<p>Prompt context is temporary information; it does not normally change the model’s weights.</p><h3>Prompt context is temporary</h3><p>During inference, the model can use information from the current prompt, but that does not automatically update model weights. Training and fine-tuning change weights; prompting changes only the current context.</p></div></section>
+
+<section id="s18"><button class="sectionHead" onclick="toggleSec(this)"><h2>18. Next-Token Prediction</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<p>A GPT-style Transformer predicts the next token from previous tokens.</p>
+<pre>Context: The cat drank
+Possible next tokens:
+milk   0.45
+water  0.22
+slowly 0.08</pre>
+<p>Long answers are built by repeating:</p><pre>predict → append → predict → append</pre>
+<p>The model outputs logits first. Softmax converts logits into probabilities. A decoding strategy chooses the next token.</p>
+<div class="hot callout"><strong>Truth warning:</strong> Next-token prediction optimizes plausible continuation, not guaranteed truth. That is why verification, RAG, tools, and citations matter.</div><h3>Probabilities, not certainty</h3><p>The model outputs a probability distribution over tokens. Decoding choices like greedy decoding, sampling, temperature, top-k, and top-p decide how those probabilities become actual generated text.</p></div></section>
+
+<section id="s19"><button class="sectionHead" onclick="toggleSec(this)"><h2>19. Missing Deep Details</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<h3>Q/K/V Matrix Shapes</h3>
+<pre>Sentence length = 4 tokens
+Model dimension = 8
+X shape = 4 × 8
+Wq shape = 8 × 4
+Q shape = 4 × 4
+K shape = 4 × 4
+V shape = 4 × 4
+QKᵀ shape = 4 × 4 attention matrix</pre>
+<h3>Tiny scaled dot-product calculation</h3>
+<pre>Q_drank = [1, 0]
+K_The   = [0, 1] → dot = 0
+K_cat   = [1, 0] → dot = 1
+K_drank = [1, 1] → dot = 1
+K_milk  = [1, 0] → dot = 1
+Raw scores = [0, 1, 1, 1]
+Scale by √2 ≈ 1.414
+Softmax ≈ [0.14, 0.29, 0.29, 0.29]</pre>
+<h3>Padding mask vs causal mask</h3>
+<table><tr><th>Mask</th><th>Purpose</th></tr><tr><td>Padding mask</td><td>Ignore fake [PAD] tokens added for batching</td></tr><tr><td>Causal mask</td><td>Prevent attention to future tokens during generation</td></tr></table>
+<h3>Cross-entropy loss</h3>
+<p>Training checks how much probability the model assigned to the correct next token.</p>
+<pre>loss = -log(probability of correct token)</pre>
+<h3>Teacher forcing / shifted labels</h3>
+<pre>Input:  The   cat   drank   milk
+Target: cat   drank milk    .</pre>
+<p>During training, the model gets correct previous tokens from data. During inference, it uses its own generated tokens.</p>
+<h3>KV cache</h3>
+<p>During inference, previous Keys and Values are cached so the model does not recalculate them for every new token.</p>
+<pre>previous K,V saved → compute only new token K,V → faster generation</pre>
+<h3>Attention cost and context window</h3>
+<p>Attention compares tokens with tokens, so the attention matrix is n × n. Cost grows roughly as O(n²).</p>
+<pre>1,000 tokens  → 1,000,000 attention values
+10,000 tokens → 100,000,000 attention values</pre>
+<h3>Transformer vs LLM</h3>
+<table><tr><th>Transformer</th><th>LLM</th></tr><tr><td>Architecture</td><td>Large trained language system</td></tr><tr><td>Attention, FFN, blocks</td><td>Architecture + data + parameters + tokenizer + tuning + serving</td></tr></table>
+<p>All GPT-style LLMs use Transformers, but a Transformer architecture alone is not automatically a useful LLM.</p>
+<h3>Modern LLM notes</h3>
+<ul><li><strong>RoPE:</strong> rotary positional embedding; injects position into Q/K rotations.</li><li><strong>ALiBi:</strong> adds distance-based attention bias.</li><li><strong>GELU/SwiGLU:</strong> activation/gating choices inside FFN.</li><li><strong>Pre-norm:</strong> LayerNorm before attention/FFN, often used for deep stability.</li><li><strong>Dropout:</strong> training regularization used in classic Transformer training.</li></ul>
+<h3>Why these details matter</h3><p>These implementation-level ideas explain why Transformers are powerful but expensive, why generation benefits from KV cache, why long context costs more, and why a Transformer architecture alone is not the same thing as a fully trained LLM system.</p></div></section>
+
+<section id="demos" class="demo"><button class="sectionHead" onclick="toggleSec(this)"><h2>Interactive Demos</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<h3>Demo 1 — Token → Embedding → Position Flow</h3>
+<p>Type a short sentence and see the simplified Transformer input preparation.</p>
+<div class="controls"><input id="demoText" value="The cat drank milk" style="min-width:260px"><button onclick="runTokenDemo()">Run</button></div>
+<div id="tokenDemo"></div>
+<hr style="border-color:var(--line);margin:24px 0">
+<h3>Demo 2 — Attention Matrix Viewer</h3>
+<p>Click a token to see a simple attention row.</p>
+<div class="tokens" id="attnTokens"></div><div id="attnBars"></div>
+<hr style="border-color:var(--line);margin:24px 0">
+<h3>Demo 3 — Causal Mask Toggle</h3>
+<div class="controls"><select id="maskMode" onchange="drawMask()"><option value="causal">Causal mask</option><option value="full">Full encoder attention</option></select></div>
+<div id="maskMatrix" class="matrix"></div>
+<hr style="border-color:var(--line);margin:24px 0">
+<h3>Demo 4 — Next Token Prediction Loop</h3>
+<p>A toy deterministic demo showing token-by-token generation.</p>
+<div class="controls"><button onclick="nextTokenDemo()">Predict next token</button><button onclick="resetNextDemo()">Reset</button></div>
+<pre id="nextOut">The cat drank</pre>
+<hr style="border-color:var(--line);margin:24px 0">
+<h3>Demo 5 — KV Cache Mini Visual</h3>
+<div class="controls"><button onclick="kvStep()">Generate step with cache</button><button onclick="kvReset()">Reset cache</button></div>
+<div id="kvOut"></div>
+</div></section>
+
+<section id="quiz"><button class="sectionHead" onclick="toggleSec(this)"><h2>Transformer Quiz</h2><span class="chev">⌄</span></button><div class="sectionBody"><p>Click to reveal answers.</p><div id="quizBox"></div><div class="controls"><button onclick="showAllAnswers()">Show all answers</button></div></div></section>
+
+<section id="final"><button class="sectionHead" onclick="toggleSec(this)"><h2>Final Master Memory</h2><span class="chev">⌄</span></button><div class="sectionBody">
+<pre>Attention is the mechanism.
+Transformer is the architecture.
+Encoder understands.
+Decoder generates.
+GPT is decoder-only.
+Training changes weights.
+Inference uses weights.
+LLM output is repeated next-token prediction.</pre>
+<div class="callout"><strong>Final line:</strong> A Transformer turns tokens into vectors, repeatedly updates those vectors using attention and neural networks, and then predicts what token should come next.</div>
+</div></section>
+
+  </main>
+</div>
+<footer class="footer">11 — Transformer · AI/LLM Learning Demos</footer>
+<script>
+function applyTheme(mode){document.body.classList.toggle('light-mode',mode==='light');document.getElementById('themeToggle').textContent=mode==='light'?'🌙 Dark mode':'☀️ Light mode';localStorage.setItem('transformerTheme',mode)}
+function toggleTheme(){applyTheme(document.body.classList.contains('light-mode')?'dark':'light')}
+applyTheme(localStorage.getItem('transformerTheme')||'dark');
+const sections=[...document.querySelectorAll('main section')];
+const toc=document.getElementById('toc'), floatPanel=document.getElementById('floatPanel');
+sections.forEach(s=>{const h=s.querySelector('h2')?.textContent||s.id; const a=document.createElement('a'); a.href='#'+s.id; a.textContent=h; toc.appendChild(a.cloneNode(true)); floatPanel.appendChild(a);});
+function toggleFloat(){document.getElementById('floatPanel').classList.toggle('show')}
+function toggleSec(btn){btn.parentElement.classList.toggle('collapsed')}
+function expandAll(){document.querySelectorAll('section').forEach(s=>s.classList.remove('collapsed'))}
+function collapseAll(){document.querySelectorAll('section').forEach(s=>{if(!['demos','quiz','final'].includes(s.id))s.classList.add('collapsed')})}
+function runTokenDemo(){const text=document.getElementById('demoText').value.trim()||'The cat drank milk'; const toks=text.split(/\s+/); let html='<div class="tokens">'+toks.map((t,i)=>`<span class="tok">${t}<br><small>ID ${100+i*137}</small><br><small>pos ${i+1}</small></span>`).join('')+'</div>'; html+='<pre>For each token:\ninput_vector = token_embedding + position_information\n\n'; toks.forEach((t,i)=>{html+=`${t.padEnd(10)} → ID ${100+i*137} → emb[${(0.1+i/10).toFixed(2)}, ${(0.3-i/20).toFixed(2)}, ...] + pos(${i+1})\n`}); html+='</pre>'; document.getElementById('tokenDemo').innerHTML=html; setupAttn(toks)}
+let attnToks=['The','cat','drank','milk'];
+function setupAttn(toks=attnToks){attnToks=toks.slice(0,6); const holder=document.getElementById('attnTokens'); holder.innerHTML=''; attnToks.forEach((t,i)=>{const b=document.createElement('button'); b.className='tok'+(i===0?' active':''); b.textContent=t; b.onclick=()=>drawAttn(i); holder.appendChild(b)}); drawAttn(0); drawMask()}
+function drawAttn(row){[...document.querySelectorAll('#attnTokens .tok')].forEach((b,i)=>b.classList.toggle('active',i===row)); const vals=attnToks.map((_,i)=> Math.max(.05, 1/(1+Math.abs(row-i)))); const sum=vals.reduce((a,b)=>a+b,0); const probs=vals.map(v=>v/sum); document.getElementById('attnBars').innerHTML=probs.map((p,i)=>`<p><strong>${attnToks[row]}</strong> attends to <strong>${attnToks[i]}</strong>: ${(p*100).toFixed(1)}%</p><div class="bar"><span style="width:${p*100}%"></span></div>`).join('')}
+function drawMask(){const mode=document.getElementById('maskMode')?.value||'causal'; const toks=attnToks; const m=document.getElementById('maskMatrix'); m.style.gridTemplateColumns=`repeat(${toks.length+1}, minmax(60px,1fr))`; let html='<div class="cell headcell"></div>'+toks.map(t=>`<div class="cell headcell">${t}</div>`).join(''); toks.forEach((r,i)=>{html+=`<div class="cell headcell">${r}</div>`; toks.forEach((c,j)=>{const ok=mode==='full'||j<=i; html+=`<div class="cell ${ok?'allowed':'blocked'}">${ok?'✅':'❌'}</div>`})}); m.innerHTML=html}
+const gen=['milk','because','it','was','hungry','.']; let genIndex=0; function nextTokenDemo(){let el=document.getElementById('nextOut'); if(genIndex<gen.length){el.textContent+=' '+gen[genIndex++]}else{el.textContent+='\n[End condition reached]'}} function resetNextDemo(){genIndex=0; document.getElementById('nextOut').textContent='The cat drank'}
+let kv=['The','cat','drank']; let generated=[]; function kvStep(){const next=['milk','because','it','was','hungry'][generated.length]||'.'; generated.push(next); kv.push(next); document.getElementById('kvOut').innerHTML='<pre>'+kv.map((t,i)=>`${i+1}. ${t}: K cached ✅  V cached ✅`).join('\n')+'\n\nNew step computes only latest token K,V and reuses previous cache.</pre>'} function kvReset(){kv=['The','cat','drank']; generated=[]; document.getElementById('kvOut').innerHTML='<pre>Cache reset. Existing prompt tokens can be cached after first pass.</pre>'}
+const quiz=[['What is the main limitation of RNNs compared to Transformers?','RNNs process tokens sequentially.'],['Why does Transformer need position information?','To know token order.'],['What does self-attention do?','Lets tokens look at other tokens in the same sequence.'],['In Q/K/V, what decides attention weights?','Q and K.'],['What does V provide?','The information to be mixed.'],['Why use multi-head attention?','To look at the sequence from multiple learned views.'],['What does FFN do?','Processes each token representation internally.'],['Purpose of residual connections?','Preserve old information and add learned updates.'],['Why does decoder use masked attention?','To prevent looking at future tokens.'],['GPT-style models are usually what architecture?','Decoder-only Transformer.'],['What is training?','Updating model weights using loss and backpropagation.'],['What is inference?','Using fixed trained weights to generate output.'],['What are logits?','Raw scores before softmax.'],['What does softmax do?','Converts raw scores into probabilities.'],['What is KV cache?','A cache of previous token keys and values to speed inference.']];
+document.getElementById('quizBox').innerHTML=quiz.map((q,i)=>`<div class="quizQ" onclick="this.querySelector('.answer').style.display='block'"><strong>Q${i+1}. ${q[0]}</strong><div class="answer">Answer: ${q[1]}</div></div>`).join(''); function showAllAnswers(){document.querySelectorAll('.answer').forEach(a=>a.style.display='block')}
+runTokenDemo(); kvReset();
+</script>
+</body>
+</html>
