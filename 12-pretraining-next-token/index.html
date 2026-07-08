@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>12 — Pretraining / Next-Token Prediction</title>
+  <style>
+    :root{
+      --bg:#f7fbff; --panel:#ffffff; --panel2:#edf6ff; --text:#102033; --muted:#53657d; --line:#d7e6f5;
+      --accent:#16a34a; --accent2:#2563eb; --pill:#eaf7ef; --code:#f1f7ff; --shadow:0 18px 50px rgba(15,23,42,.10);
+      --hero1:#eaf7ff; --hero2:#dff3ea; --nav:#ffffff; --tocBg:#ffffff;
+    }
+    [data-theme="dark"]{
+      --bg:#071827; --panel:#0d2135; --panel2:#132b3d; --text:#f3f8ff; --muted:#b8c7d9; --line:#244763;
+      --accent:#69f0a2; --accent2:#93c5fd; --pill:#17384a; --code:#071421; --shadow:0 18px 50px rgba(0,0,0,.34);
+      --hero1:#183b4d; --hero2:#102844; --nav:#081726; --tocBg:#0b1c2f;
+    }
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;font-family:Inter,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14.5px;line-height:1.62;overflow-x:hidden}
+    .topbar{position:sticky;top:0;z-index:50;background:var(--nav);border-bottom:1px solid var(--line);box-shadow:0 2px 16px rgba(0,0,0,.08)}
+    .topbar .wrap{max-width:1180px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 18px}
+    .brand{font-weight:900;letter-spacing:-.02em;color:var(--text);font-size:15px}
+    .actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    button,.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:999px;padding:9px 14px;font-weight:850;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.06)}
+    button:hover,.btn:hover{border-color:var(--accent);transform:translateY(-1px)}
+    .hero{padding:56px 18px 42px;background:radial-gradient(circle at 12% 10%, color-mix(in srgb,var(--accent) 20%,transparent), transparent 28%),linear-gradient(135deg,var(--hero1),var(--hero2));border-bottom:1px solid var(--line)}
+    .wrap{max-width:1180px;margin:0 auto}
+    .hero .series-pill{display:inline-flex;align-items:center;gap:8px;border:1px solid color-mix(in srgb,var(--accent) 55%,var(--line));background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border-radius:999px;padding:9px 15px;font-weight:900;margin-bottom:24px}
+    .hero h1{font-size:clamp(42px,7vw,78px);line-height:.95;margin:0 0 20px;font-weight:950;letter-spacing:-.065em;color:var(--text)}
+    .hero p{max-width:940px;margin:0;color:color-mix(in srgb,var(--text) 76%,var(--muted));font-size:clamp(18px,2.4vw,25px);line-height:1.55}
+    .hero .tags{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;max-width:900px}
+    .tag{padding:8px 13px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--panel) 72%,transparent);color:var(--muted);font-size:13px;font-weight:750}
+    .main{display:grid;grid-template-columns:280px minmax(0,1fr);gap:22px;padding:28px 18px 76px}
+    .toc{position:sticky;top:74px;align-self:start;background:var(--tocBg);border:1px solid var(--line);border-radius:20px;box-shadow:var(--shadow);padding:14px;max-height:calc(100vh - 96px);overflow:auto;scrollbar-width:thin}
+    .toc h3{margin:4px 6px 12px;font-size:15px;color:var(--accent);font-weight:950}
+    .toc a{display:block;text-decoration:none;color:var(--muted);padding:8px 10px;border-radius:12px;font-size:13.5px;line-height:1.35}
+    .toc a:hover{background:var(--pill);color:var(--accent)}
+    .content{min-width:0}
+    .summary-card,.section,.demo,.quiz{background:var(--panel);border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);margin-bottom:18px;overflow:hidden}
+    .summary-card{padding:24px;display:grid;gap:18px}
+    .summary-top{display:grid;grid-template-columns:1.3fr .9fr;gap:20px}
+    .idea-card,.include-card{background:color-mix(in srgb,var(--panel) 84%,var(--panel2));border:1px solid var(--line);border-radius:20px;padding:22px;min-height:180px}
+    .idea-card h2,.include-card h2,.demo h2,.quiz h2{margin:0 0 12px;font-size:24px;letter-spacing:-.03em;color:var(--text)}
+    .memory-line{margin-top:18px;padding:14px 16px;border-left:4px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,var(--panel2));border-radius:14px;color:var(--text)}
+    .grid{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+    .mini{border:1px solid var(--line);border-radius:999px;padding:9px 13px;background:var(--pill);color:var(--muted);font-size:13px;font-weight:750}
+    .mini b{color:var(--accent)}
+    details.section[open] summary{border-bottom:1px solid var(--line)}
+    summary{list-style:none;cursor:pointer;padding:15px 18px;display:flex;align-items:center;gap:12px;justify-content:space-between;background:color-mix(in srgb,var(--panel) 88%,var(--panel2))}
+    summary::-webkit-details-marker{display:none}
+    .title{display:flex;gap:10px;align-items:center;min-width:0}
+    .num{background:var(--pill);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));min-width:36px;height:31px;border-radius:999px;display:grid;place-items:center;font-weight:950;font-size:13px}
+    summary h2{font-size:18px;margin:0;letter-spacing:-.02em}
+    .chev{color:var(--accent);transition:.2s;font-weight:900}
+    details[open] .chev{transform:rotate(180deg)}
+    .body{padding:17px 21px 22px}
+    p{margin:0 0 12px}.muted{color:var(--muted)}
+    ul{margin:8px 0 12px 20px;padding:0}li{margin:4px 0}
+    code,pre{font-family:Consolas,Monaco,monospace}
+    pre{background:var(--code);border:1px solid var(--line);border-radius:16px;padding:13px;overflow:auto;white-space:pre-wrap;margin:12px 0;color:var(--text)}
+    .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:12px 0}
+    .node{padding:9px 11px;border-radius:13px;background:var(--pill);border:1px solid var(--line);font-weight:800;font-size:13px}
+    .arrow{color:var(--accent);font-weight:950}
+    .mask-table,.plain-table{width:100%;border-collapse:collapse;margin:12px 0;font-size:14px}
+    .mask-table th,.mask-table td,.plain-table th,.plain-table td{border:1px solid var(--line);padding:8px;text-align:center}
+    .mask-table th,.plain-table th{background:var(--pill)}
+    .ok{color:var(--accent);font-weight:950}.no{color:#f87171;font-weight:950}.warn{color:#fbbf24;font-weight:850}
+    .float-controls{position:fixed;right:22px;top:116px;z-index:60;display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+    .float-controls .big-toggle{background:linear-gradient(135deg,#a7f3c6,#77e6a1);color:#062215;border:0;border-radius:999px;padding:15px 23px;font-size:16px;box-shadow:0 16px 36px rgba(0,0,0,.20)}
+    .float-menu{display:none;width:min(360px,calc(100vw - 44px));max-height:calc(100vh - 200px);overflow:auto;background:var(--tocBg);border:1px solid var(--line);border-radius:20px;padding:16px;box-shadow:0 24px 55px rgba(0,0,0,.34)}
+    .float-menu.open{display:block}
+    .float-menu a{display:block;text-decoration:none;color:var(--muted);padding:8px 10px;border-radius:12px;font-size:13.5px}
+    .float-menu a:hover{background:var(--pill);color:var(--accent)}
+    .float-mini-actions{display:flex;gap:8px;padding:8px 8px 12px;border-bottom:1px solid var(--line);margin-bottom:8px}
+    .float-mini-actions button{font-size:12px;padding:7px 10px}
+    .demo{padding:22px}
+    .demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .panel{border:1px solid var(--line);background:color-mix(in srgb,var(--panel) 86%,var(--panel2));border-radius:18px;padding:15px}
+    .panel h3{margin:0 0 8px;font-size:16px;color:var(--accent)}
+    .input,select,input[type="number"],input[type="text"]{width:100%;padding:10px 11px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);font:inherit}
+    .tokens{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+    .tok{padding:7px 10px;background:var(--pill);border:1px solid var(--line);border-radius:999px;font-weight:800}
+    .prob-row{display:grid;grid-template-columns:90px 1fr 60px;gap:8px;align-items:center;margin:7px 0}
+    .bar{height:12px;background:var(--pill);border:1px solid var(--line);border-radius:999px;overflow:hidden}
+    .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));width:0}
+    .slider-row{display:grid;grid-template-columns:80px 1fr 55px;gap:8px;align-items:center;margin:9px 0}
+    .lossbox{font-size:28px;font-weight:950;color:var(--accent)}
+    .footer{padding:30px 18px;color:var(--muted);text-align:center;border-top:1px solid var(--line)}
+    .quiz .body{padding:20px}
+    .q{border-top:1px solid var(--line);padding:12px 0}
+    .q:first-child{border-top:0}
+    .answer{display:none;margin-top:8px;padding:10px;border-radius:12px;background:var(--pill);border:1px solid var(--line)}
+    @media (max-width:980px){
+      .main{grid-template-columns:1fr}
+      .toc{position:relative;top:0;max-height:none}
+      .summary-top,.demo-grid{grid-template-columns:1fr}
+      .float-controls{right:12px;top:auto;bottom:14px}
+      .brand{font-size:13px}
+      .actions button:not(#themeBtn){display:none}
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="wrap">
+      <div class="brand">12 — Pretraining / Next-Token Prediction</div>
+      <div class="actions">
+        <button id="themeBtn">☀️ Light mode</button>
+        <button onclick="openAll()">Expand all</button>
+        <button onclick="closeAll()">Collapse all</button>
+      </div>
+    </div>
+  </div>
+
+  <header class="hero">
+    <div class="wrap">
+      <div class="series-pill">AI/LLM Learning Series • 12</div>
+      <h1>Pretraining / Next-Token Prediction</h1>
+      <p>A deep single-page study guide showing how raw text becomes tokens, how a causal Transformer predicts the next token, how loss updates weights, and how generation happens token by token.</p>
+      <div class="tags">
+        <span class="tag">Pretraining</span><span class="tag">Causal LM</span><span class="tag">Input/Target Shift</span><span class="tag">Softmax</span><span class="tag">Cross-Entropy</span><span class="tag">Generation</span><span class="tag">Hallucination</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="float-controls">
+    <button class="big-toggle" onclick="toggleFloatMenu()">Show / Hide</button>
+    <div class="float-menu" id="floatMenu">
+      <div class="float-mini-actions">
+        <button onclick="openAll()">Expand all</button>
+        <button onclick="closeAll()">Collapse all</button>
+        <button onclick="window.scrollTo({top:0,behavior:'smooth'})">Top</button>
+      </div>
+      <div id="floatLinks"></div>
+    </div>
+  </div>
+
+  <main class="wrap main">
+    <aside class="toc" id="toc">
+      <h3>Study Sections</h3>
+    </aside>
+
+    <section class="content">
+      <div class="summary-card">
+        <div class="summary-top">
+          <div class="idea-card">
+            <h2>Core idea</h2>
+            <p>A Transformer becomes a language model when it is trained again and again to predict the <b>next token</b> from previous tokens.</p>
+            <div class="memory-line"><b>Memory line:</b> Pretraining gives broad capability. Instruction tuning gives assistant behavior. RAG/tools give external grounding.</div>
+          </div>
+          <div class="include-card">
+            <h2>What this page includes</h2>
+            <div class="grid">
+              <span class="mini"><b>40</b> study sections</span>
+              <span class="mini">Input/Target Shift</span>
+              <span class="mini">Causal Mask</span>
+              <span class="mini">Logits & Softmax</span>
+              <span class="mini">Cross-Entropy</span>
+              <span class="mini">Generation</span>
+              <span class="mini">Decoding</span>
+              <span class="mini">Hallucination</span>
+              <span class="mini">5 Demos</span>
+            </div>
+          </div>
+        </div>
+        <div class="flow">
+          <span class="node">Raw Text</span><span class="arrow">→</span><span class="node">Tokens</span><span class="arrow">→</span><span class="node">Input/Target Shift</span><span class="arrow">→</span><span class="node">Causal Mask</span><span class="arrow">→</span><span class="node">Transformer</span><span class="arrow">→</span><span class="node">Softmax + Loss</span><span class="arrow">→</span><span class="node">Weight Update</span><span class="arrow">→</span><span class="node">Generation</span>
+        </div>
+      </div>
+
+      <div id="sections"></div>
+
+      <div class="demo" id="demos">
+        <h2>Interactive Demos</h2>
+        <p class="muted">These small demos make the hidden training and generation steps visible.</p>
+
+        <div class="demo-grid">
+          <div class="panel">
+            <h3>Demo 1 — Token Shift Visualizer</h3>
+            <input class="input" id="shiftInput" value="I love machine learning" oninput="renderShift()" />
+            <div id="shiftOut"></div>
+          </div>
+          <div class="panel">
+            <h3>Demo 2 — Causal Mask Visualizer</h3>
+            <input class="input" id="maskInput" value="The cat sat down" oninput="renderMask()" />
+            <div id="maskOut"></div>
+          </div>
+        </div>
+
+        <div class="demo-grid" style="margin-top:14px">
+          <div class="panel">
+            <h3>Demo 3 — Logits → Softmax → Loss</h3>
+            <p class="muted">Adjust logits and choose the correct target.</p>
+            <label>Correct token</label>
+            <select id="targetSel" onchange="renderSoftmax()"></select>
+            <div id="logitSliders"></div>
+            <div id="softmaxOut"></div>
+          </div>
+          <div class="panel">
+            <h3>Demo 4 — Tiny Training Loop Simulator</h3>
+            <p class="muted">Watch probabilities improve for the tiny dataset: I drink tea/water, I eat rice/bread.</p>
+            <label>Context</label>
+            <select id="trainContext" onchange="renderTrain()"><option>I drink</option><option>I eat</option><option>I</option></select>
+            <div class="slider-row"><span>Step</span><input type="range" id="trainStep" min="0" max="100" value="0" oninput="renderTrain()"><b id="trainStepVal">0</b></div>
+            <div id="trainOut"></div>
+          </div>
+        </div>
+
+        <div class="panel" style="margin-top:14px">
+          <h3>Demo 5 — Decoding Playground</h3>
+          <div class="demo-grid">
+            <div>
+              <label>Strategy</label>
+              <select id="decodeStrategy" onchange="renderDecode()">
+                <option>Greedy</option><option>Sampling</option><option>Top-k</option><option>Top-p</option>
+              </select>
+              <div class="slider-row"><span>Temp</span><input type="range" id="temp" min="0.2" max="2" step="0.1" value="1" oninput="renderDecode()"><b id="tempVal">1.0</b></div>
+              <div class="slider-row"><span>Top-k</span><input type="range" id="topk" min="1" max="5" value="3" oninput="renderDecode()"><b id="topkVal">3</b></div>
+              <div class="slider-row"><span>Top-p</span><input type="range" id="topp" min="0.4" max="1" step="0.05" value="0.9" oninput="renderDecode()"><b id="toppVal">0.90</b></div>
+              <button onclick="renderDecode(true)">Pick token</button>
+            </div>
+            <div id="decodeOut"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quiz" id="quiz">
+        <summary><h2>Final Quiz + Answer Key</h2></summary>
+        <div class="body" id="quizBody"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">12 — Pretraining / Next-Token Prediction · GitHub Pages Ready · Single File HTML</footer>
+
+<script>
+const sectionData = [
+['Big picture of pretraining',`A Transformer starts as an architecture. Pretraining turns that architecture into a language model by repeatedly asking it to predict the next token from previous tokens.<pre>Transformer architecture + learned weights = language model</pre>`],
+['Why Transformer alone is not an LLM',`Before training, weights are random. The model has layers and attention, but no learned language patterns. It may predict nonsense after a prompt like <b>The sky is</b>. Pretraining gives those weights useful structure.`],
+['What pretraining means',`Pretraining is broad training on large general text before later task-specific stages. For GPT-style models, the main objective is causal next-token prediction.<pre>Input:  The sun rises in the\nTarget: east</pre>`],
+['Why it is called pretraining',`It happens before instruction tuning, preference tuning, safety tuning, RAG integration, and product-level behavior design. It creates broad capability; later stages shape behavior.`],
+['Text data preparation',`Raw text is messy. It may contain menus, ads, duplicated paragraphs, broken HTML, spam, unsafe text, and low-quality material. Data is collected, cleaned, filtered, deduplicated, formatted, and tokenized before training.`],
+['Data quality and filtering',`The model learns what the data repeatedly shows. Good data improves language quality. Bad data can teach repetition, bias, unsafe patterns, wrong facts, and poor formatting. Quality matters as much as quantity.`],
+['Tokenization review',`Neural networks process numbers, not raw text. Tokenization breaks text into pieces. A token can be a word, subword, punctuation mark, number, space pattern, code symbol, or special marker.`],
+['Token IDs and vocabulary',`Each token maps to an ID from a fixed vocabulary. If the vocabulary has 50,000 tokens, the model outputs 50,000 scores at each prediction position. Token IDs are lookup keys, not meaning.`],
+['Token stream',`Training documents become long streams of token IDs. Document boundaries may be marked with special tokens such as <code>&lt;endoftext&gt;</code>. The model learns from chunks cut from this token stream.`],
+['Context window and chunking',`A model cannot see infinite history. It has a context window. Long text is divided into chunks that fit the model’s sequence length. Longer context helps long-range dependency but costs more compute.`],
+['Next-token prediction core',`The core objective is simple:<pre>previous tokens → next token</pre>Example:<pre>I love machine → learning</pre>The model learns by giving higher probability to the true next token.`],
+['Input-target shifting',`For tokens <code>[The, cat, sat, down]</code>, the input can be <code>[The, cat, sat]</code> and the target is <code>[cat, sat, down]</code>. This creates aligned prediction points.<pre>The → cat\ncat → sat\nsat → down</pre>`],
+['Prediction at every position',`One sentence gives many training signals. <code>The cat sat on the mat</code> gives predictions such as <code>The → cat</code>, <code>The cat → sat</code>, and so on. This makes pretraining efficient.`],
+['Self-supervised learning',`No human manually labels every token. The next token in the original text becomes the label. This is why massive ordinary text can become training data.`],
+['Teacher forcing',`During training, the model receives correct previous tokens from real text. During generation, it receives its own generated tokens. This difference can cause drift when early generated tokens are wrong.`],
+['Causal language modeling',`Causal means left-to-right. The model predicts future tokens using only previous/current tokens, not future tokens. This matches how generation works.`],
+['Causal mask',`A causal mask blocks future positions in attention. Token 3 can attend to tokens 1, 2, and 3, but not token 4. This prevents cheating.`],
+['Attention matrix during pretraining',`The attention matrix becomes triangular. Rows are current tokens; columns are tokens they can look at. Future columns are blocked before softmax.`],
+['Inside the Transformer',`The training flow is:<div class="flow"><span class="node">Token IDs</span><span class="arrow">→</span><span class="node">Embeddings + Position</span><span class="arrow">→</span><span class="node">Masked Attention</span><span class="arrow">→</span><span class="node">FFN</span><span class="arrow">→</span><span class="node">Hidden States</span></div>`],
+['Embeddings and position',`Token embeddings represent token identity. Positional information tells the model order. Without position, <code>dog chased cat</code> and <code>cat chased dog</code> would be harder to distinguish.`],
+['Hidden states',`After Transformer blocks, each position has a context-aware hidden state. The word <code>bank</code> in <code>bank account</code> and <code>river bank</code> can have different hidden states because context changes representation.`],
+['Output projection',`A hidden state is projected into vocabulary-sized logits. If vocabulary size is 50,000, each position produces 50,000 raw scores.`],
+['Logits',`Logits are raw scores, not probabilities. Example:<pre>tea 3.5\nwater 2.8\nrice 0.5\ncar -1.0</pre>Higher logit means more likely before softmax.`],
+['Softmax',`Softmax converts logits into probabilities that add up to 1. It makes higher scores stand out and produces a probability distribution over the vocabulary.`],
+['Probability distribution',`The model does not know only one answer. It gives many possible next tokens with different probabilities. This is important because language often has multiple valid continuations.`],
+['Cross-entropy loss',`Cross-entropy measures how much probability the model assigned to the correct token.<pre>loss = -log(probability of correct token)</pre>High correct probability means low loss.`],
+['Sequence loss and batch loss',`Loss is calculated at many positions in a sequence and averaged. Training usually processes batches of sequences, then averages loss across valid token positions in the batch.`],
+['Backpropagation',`Backpropagation sends the loss signal backward through the model, calculating gradients for embeddings, attention, feed-forward layers, normalization, and output weights.`],
+['Optimizer and learning rate',`The optimizer uses gradients to update weights. The learning rate controls update size. Too high can destabilize training; too low can make learning slow.`],
+['What the model learns internally',`The model learns distributed patterns: grammar, syntax, facts, style, code, formatting, question-answer patterns, domain language, and reasoning-like structures. It does not store knowledge like a simple database.`],
+['Why next-token prediction works',`To predict well, the model must learn deeper structure. Grammar, meaning, facts, code, style, and long-range dependencies all help reduce next-token loss.`],
+['Pretraining vs fine-tuning vs RAG',`Pretraining learns broad patterns into weights. Fine-tuning changes weights for a task/domain/style. Instruction tuning teaches following instructions. RAG retrieves external information into the prompt without usually changing weights.`],
+['Generation after training',`Generation is repeated next-token prediction. The prompt is tokenized, the model predicts a distribution, a token is selected, appended, and the process repeats until a stop condition.`],
+['Decoding strategies',`Decoding chooses the next token from probabilities. Greedy picks the highest. Sampling picks according to probability. Temperature controls randomness. Top-k and top-p restrict the candidate set.`],
+['Hallucination connection',`Hallucination happens because likely text is not always verified truth. If knowledge is missing, outdated, ambiguous, or unsupported, the model may still generate fluent-looking text.`],
+['Tiny manual example',`Dataset:<pre>I drink tea\nI drink water\nI eat rice\nI eat bread</pre>The model should learn <code>I drink → tea/water</code> and <code>I eat → rice/bread</code>. Loss decreases as correct-token probability rises.`],
+['Training at scale',`Real training uses huge token datasets, large batches, gradient accumulation, checkpoints, validation loss, distributed GPU/TPU clusters, mixed precision, and careful monitoring.`],
+['Common misunderstandings',`LLMs are not just databases, not always internet-connected, not perfect truth machines, and not exactly human minds. They are powerful next-token predictors with learned distributed representations.`],
+['Final recap',`Raw text is cleaned and tokenized. A causal Transformer predicts next tokens. Cross-entropy loss measures mistakes. Backpropagation updates weights. After massive repetition, the model learns language patterns and later generates text token by token.`],
+['Quiz and answer key',`Use the quiz below to test the core ideas: objective, causal mask, softmax, loss, generation, decoding, and hallucination.`]
+];
+
+function initSections(){
+  const box=document.getElementById('sections'), toc=document.getElementById('toc'), fl=document.getElementById('floatLinks');
+  sectionData.forEach((s,i)=>{
+    const n=String(i+1).padStart(2,'0'), id='sec'+n;
+    toc.insertAdjacentHTML('beforeend',`<a href="#${id}">${n}. ${s[0]}</a>`);
+    if(fl) fl.insertAdjacentHTML('beforeend',`<a href="#${id}" onclick="document.getElementById('floatMenu').classList.remove('open')">${n}. ${s[0]}</a>`);
+    box.insertAdjacentHTML('beforeend',`<details class="section" id="${id}" ${i<4?'open':''}><summary><div class="title"><span class="num">${n}</span><h2>${s[0]}</h2></div><span class="chev">⌄</span></summary><div class="body">${s[1]}</div></details>`);
+  });
+}
+function openAll(){document.querySelectorAll('details.section').forEach(d=>d.open=true)}
+function closeAll(){document.querySelectorAll('details.section').forEach(d=>d.open=false)}
+
+const themeBtn=document.getElementById('themeBtn');
+const savedTheme = localStorage.getItem('theme');
+if(savedTheme === 'light' || savedTheme === 'dark') document.documentElement.dataset.theme = savedTheme;
+function syncThemeButton(){
+  const isDark = document.documentElement.dataset.theme === 'dark';
+  themeBtn.textContent = isDark ? '☀️ Light mode' : '🌙 Dark mode';
+}
+syncThemeButton();
+themeBtn.onclick = () => {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+  localStorage.setItem('theme', html.dataset.theme);
+  syncThemeButton();
+};
+
+function toks(str){return str.trim().split(/\s+/).filter(Boolean)}
+function tokenHTML(arr){return `<div class="tokens">${arr.map(t=>`<span class="tok">${t}</span>`).join('')}</div>`}
+function renderShift(){
+  const t=toks(document.getElementById('shiftInput').value);
+  const input=t.slice(0,-1), target=t.slice(1);
+  let pairs=''; for(let i=0;i<t.length-1;i++) pairs+=`<pre>${t.slice(0,i+1).join(' ')} → ${t[i+1]}</pre>`;
+  document.getElementById('shiftOut').innerHTML=`<p><b>Tokens</b></p>${tokenHTML(t)}<p><b>Input</b></p>${tokenHTML(input)}<p><b>Target shifted left</b></p>${tokenHTML(target)}<p><b>Prediction pairs</b></p>${pairs||'<p class="muted">Enter at least two tokens.</p>'}`;
+}
+function renderMask(){
+  const t=toks(document.getElementById('maskInput').value).slice(0,8);
+  if(!t.length){document.getElementById('maskOut').innerHTML='';return}
+  let html='<table class="mask-table"><tr><th>Current</th>'+t.map(x=>`<th>${x}</th>`).join('')+'</tr>';
+  t.forEach((r,i)=>{html+=`<tr><th>${r}</th>`+t.map((c,j)=>`<td>${j<=i?'<span class="ok">✅</span>':'<span class="no">❌</span>'}</td>`).join('')+'</tr>'});
+  html+='</table><p class="muted">Each row can see itself and everything to the left. Future tokens are blocked.</p>';
+  document.getElementById('maskOut').innerHTML=html;
+}
+
+const vocab=['tea','water','rice','bread','car']; let logits={tea:3.5,water:2.8,rice:.5,bread:0,car:-1};
+function initSoftmax(){
+  const sel=document.getElementById('targetSel'); sel.innerHTML=vocab.map(v=>`<option>${v}</option>`).join('');
+  const sliders=document.getElementById('logitSliders');
+  sliders.innerHTML=vocab.map(v=>`<div class="slider-row"><span>${v}</span><input type="range" min="-3" max="5" step="0.1" value="${logits[v]}" oninput="logits['${v}']=parseFloat(this.value);renderSoftmax()"><b id="lv_${v}">${logits[v]}</b></div>`).join('');
+}
+function softmax(vals,temp=1){const ex=vals.map(x=>Math.exp(x/temp)); const s=ex.reduce((a,b)=>a+b,0); return ex.map(x=>x/s)}
+function renderSoftmax(){
+  vocab.forEach(v=>{const e=document.getElementById('lv_'+v); if(e)e.textContent=logits[v].toFixed(1)});
+  const probs=softmax(vocab.map(v=>logits[v])); const target=document.getElementById('targetSel').value; const p=probs[vocab.indexOf(target)]||1e-9; const loss=-Math.log(p);
+  let rows=vocab.map((v,i)=>`<div class="prob-row"><b>${v}</b><div class="bar"><div class="fill" style="width:${probs[i]*100}%"></div></div><span>${probs[i].toFixed(3)}</span></div>`).join('');
+  document.getElementById('softmaxOut').innerHTML=`${rows}<p>Correct token: <b>${target}</b></p><div class="lossbox">Loss ≈ ${loss.toFixed(3)}</div><p class="muted">Higher probability for the correct token gives lower cross-entropy loss.</p>`;
+}
+function renderTrain(){
+  const ctx=document.getElementById('trainContext').value, step=+document.getElementById('trainStep').value; document.getElementById('trainStepVal').textContent=step;
+  let base={tea:.14,water:.14,rice:.15,bread:.15,drink:.14,eat:.14,I:.14}; let goal;
+  if(ctx==='I drink') goal={tea:.48,water:.48,rice:.01,bread:.01,drink:.005,eat:.005,I:.01};
+  else if(ctx==='I eat') goal={rice:.48,bread:.48,tea:.01,water:.01,drink:.005,eat:.005,I:.01};
+  else goal={drink:.49,eat:.49,tea:.005,water:.005,rice:.005,bread:.005,I:.005};
+  const keys=['tea','water','rice','bread','drink','eat','I']; const a=step/100;
+  let vals=keys.map(k=>({k,p:(base[k]||0)*(1-a)+(goal[k]||0)*a})); const sum=vals.reduce((s,x)=>s+x.p,0); vals=vals.map(x=>({k:x.k,p:x.p/sum})).sort((a,b)=>b.p-a.p);
+  const rows=vals.map(x=>`<div class="prob-row"><b>${x.k}</b><div class="bar"><div class="fill" style="width:${x.p*100}%"></div></div><span>${x.p.toFixed(3)}</span></div>`).join('');
+  document.getElementById('trainOut').innerHTML=`<p><b>${ctx}</b> → next token distribution</p>${rows}<p class="muted">As training steps increase, likely continuations become stronger and unlikely continuations shrink.</p>`;
+}
+function renderDecode(pick=false){
+  const base=[.45,.30,.20,.05,.01], words=['tea','coffee','water','juice','stone'];
+  const temp=+document.getElementById('temp').value; document.getElementById('tempVal').textContent=temp.toFixed(1);
+  const k=+document.getElementById('topk').value; document.getElementById('topkVal').textContent=k;
+  const pcut=+document.getElementById('topp').value; document.getElementById('toppVal').textContent=pcut.toFixed(2);
+  const logits=base.map(Math.log); let probs=softmax(logits,temp); let allowed=words.map((w,i)=>({w,p:probs[i]})).sort((a,b)=>b.p-a.p);
+  const strategy=document.getElementById('decodeStrategy').value;
+  if(strategy==='Greedy') allowed=allowed.slice(0,1);
+  if(strategy==='Top-k') allowed=allowed.slice(0,k);
+  if(strategy==='Top-p'){let s=0, arr=[]; for(const x of allowed){arr.push(x);s+=x.p;if(s>=pcut)break} allowed=arr;}
+  const sum=allowed.reduce((s,x)=>s+x.p,0); allowed=allowed.map(x=>({w:x.w,p:x.p/sum}));
+  let chosen=allowed[0].w;
+  if(pick && strategy!=='Greedy'){let r=Math.random(),acc=0; for(const x of allowed){acc+=x.p;if(r<=acc){chosen=x.w;break}}}
+  const rows=allowed.map(x=>`<div class="prob-row"><b>${x.w}</b><div class="bar"><div class="fill" style="width:${x.p*100}%"></div></div><span>${x.p.toFixed(3)}</span></div>`).join('');
+  document.getElementById('decodeOut').innerHTML=`<p><b>Allowed distribution</b></p>${rows}<p>Selected token: <span class="tok">${chosen}</span></p><p class="muted">Decoding controls token selection. It does not add knowledge to the model.</p>`;
+}
+function initQuiz(){
+ const qs=[['Main GPT-style pretraining objective?','Predict the next token from previous tokens.'],['Why causal mask?','To stop each position from seeing future tokens and cheating.'],['What are logits?','Raw vocabulary scores before softmax.'],['What does softmax do?','Converts logits into probabilities that add to 1.'],['What does cross-entropy use?','The probability assigned to the correct next token.'],['Generation means?','Repeated next-token prediction with each selected token appended.'],['Temperature does what?','Controls randomness in token selection, not model knowledge.'],['Why hallucination?','Likely continuation is not always verified truth.']];
+ document.getElementById('quizBody').innerHTML=qs.map((q,i)=>`<div class="q"><b>Q${i+1}. ${q[0]}</b><br><button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">Show answer</button><div class="answer">${q[1]}</div></div>`).join('');
+}
+
+function toggleFloatMenu(){
+  document.getElementById('floatMenu').classList.toggle('open');
+}
+document.addEventListener('click', function(e){
+  const fc=document.querySelector('.float-controls');
+  if(fc && !fc.contains(e.target)) document.getElementById('floatMenu')?.classList.remove('open');
+});
+
+initSections(); initSoftmax(); renderShift(); renderMask(); renderSoftmax(); renderTrain(); renderDecode(); initQuiz();
+</script>
+</body>
+</html>
