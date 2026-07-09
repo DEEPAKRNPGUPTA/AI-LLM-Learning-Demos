@@ -4,21 +4,36 @@ This project is part of the **AI / LLM Learning Demos** series.
 
 Topic 13 focuses on **Prompting and Prompt Engineering** — how to communicate clearly with Large Language Models so that they produce useful, structured, safe, and task-appropriate outputs.
 
-The page is designed as a beginner-friendly but detailed study guide with interactive demos.
+This version is the **final expanded study version** with deeper learning blocks and Topic 11-style UX.
 
 ---
 
-## What This Topic Covers
+## Core Idea
 
-This topic explains how prompts shape the model’s context and influence next-token prediction.
-
-Core idea:
+Prompting shapes the context that the model uses for next-token prediction.
 
 ```text
 Better prompt → better context → better next-token prediction → better output
 ```
 
-The page covers:
+A good prompt gives the model:
+
+```text
+task
+context
+audience
+format
+constraints
+goal
+examples when needed
+guardrails when risk exists
+```
+
+---
+
+## What This Topic Covers
+
+The page includes **51 full study sections** covering:
 
 * What is a prompt?
 * Why prompting matters
@@ -73,6 +88,48 @@ The page covers:
 
 ---
 
+## Expanded Study Format
+
+Each study section includes:
+
+```text
+simple meaning
+detailed explanation
+weak prompt example
+strong prompt example
+common mistake
+memory line
+```
+
+Important sections also include deeper learning blocks:
+
+```text
+when to use
+when not to use / caution
+developer / production view
+mini exercise
+mini checklist
+```
+
+Expanded sections include:
+
+* Prompt Anatomy
+* Zero-shot Prompting
+* Few-shot Prompting
+* Output Contract Pattern
+* Guardrail Pattern
+* Prompting for Coding
+* Prompting for Debugging
+* Prompting for Data Extraction
+* Prompting for Classification
+* Prompting for Agents and Tool Use
+* Prompt Injection and Security
+* Prompt as API Contract
+* Prompt Engineering Workflow
+* Prompt Versioning, Testing, Evaluation, and Libraries
+
+---
+
 ## Included Interactive Demos
 
 The page includes practical demos at the bottom:
@@ -88,6 +145,11 @@ The page includes practical demos at the bottom:
 9. Prompt Injection Safety Check
 10. Quiz
 
+The final version also includes:
+
+* Final Master Checklist
+* “Which Prompt Pattern Should I Use?” decision table
+
 ---
 
 ## Learning Goals
@@ -95,20 +157,22 @@ The page includes practical demos at the bottom:
 By the end of this topic, the learner should be able to:
 
 * Understand what a prompt is
+* Understand how prompts influence next-token prediction
 * Write clearer prompts using role, task, context, audience, format, and constraints
 * Use zero-shot and few-shot prompting correctly
-* Create prompts for explanation, coding, debugging, writing, extraction, classification, planning, and transformation
-* Understand output contracts and guardrails
+* Create prompts for explanation, coding, debugging, study material, writing, extraction, classification, planning, and transformation
+* Use output contracts for structured output
+* Add guardrails to reduce guessing, hallucination, unsafe behavior, and format failure
 * Understand how prompting connects to RAG, tool calling, and agents
-* Avoid common prompt problems like ambiguity, missing context, hallucination, and format failure
 * Understand prompt injection risks
-* Treat prompts like reusable, testable assets in software systems
+* Treat prompts as reusable, testable, versioned assets
+* Think of prompts as API contracts in developer workflows
 
 ---
 
 ## UI Features
 
-The page follows the same UX direction as the earlier Transformer topic page.
+The page follows the same UX direction as the earlier **11 — Transformer Architecture** topic.
 
 Features include:
 
@@ -117,6 +181,7 @@ Features include:
 * Floating Show/Hide controls on the right
 * Collapsible study sections
 * Compact study-card layout
+* Dark hero section
 * Demos separated at the bottom
 * Mobile-friendly layout
 * No external libraries
@@ -126,7 +191,7 @@ Features include:
 
 ## Notes
 
-This topic is an important bridge between earlier LLM fundamentals and upcoming applied topics.
+This topic is an important bridge between LLM foundations and applied GenAI systems.
 
 Previous topics prepared the foundation:
 
@@ -137,7 +202,7 @@ Previous topics prepared the foundation:
 * Transformer Architecture
 * Pretraining / Next-Token Prediction
 
-This topic teaches how to communicate with LLMs effectively.
+This topic teaches how to communicate with LLMs effectively and safely.
 
 Next topics can build toward:
 
